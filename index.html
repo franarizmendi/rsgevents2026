@@ -1,0 +1,571 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ResQ FM Events Calendar</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap');
+  :root{
+    --navy:#0B1F3A; --navy-deep:#0B1F3A; --orange:#F25C1F; --orange-deep:#B5400D; --ink:#0B1F3A;
+    --slate:#5A6470; --fog:#C9D4E3; --cream:#F5F2EC; --line:#E2DCCF; --card:#FFFFFF; --wash:#FAF8F3;
+  }
+  *{margin:0;padding:0;box-sizing:border-box}
+  html,body{height:100%}
+  body{font-family:'Inter',-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;background:#0B0B0C;color:var(--ink);overflow:hidden;display:flex}
+
+  /* ---------- Sidebar ---------- */
+  #rail{width:184px;min-width:184px;height:100vh;overflow-y:auto;background:#0B0B0C;padding:12px 10px 24px 26px}
+  .thumbwrap{position:relative;margin-bottom:14px;cursor:pointer}
+  .thumbnum{position:absolute;left:-18px;top:2px;color:#9AA3A9;font-size:11px;font-weight:600}
+  .thumb{width:148px;height:83px;border-radius:4px;overflow:hidden;position:relative;background:#fff;border:2px solid transparent}
+  .thumbwrap.active .thumb{border-color:var(--orange)}
+  .thumb .mini{width:1280px;height:720px;transform:scale(0.1125);transform-origin:top left;position:absolute;top:0;left:0;pointer-events:none}
+
+  /* ---------- Stage ---------- */
+  #stage{flex:1;height:100vh;display:flex;align-items:center;justify-content:center;position:relative}
+  #frame{width:1280px;height:720px;transform-origin:center center;position:relative}
+
+  /* ---------- Slides ---------- */
+  .slide{width:1280px;height:720px;background:var(--cream);padding:72px 84px;position:absolute;inset:0;display:none;flex-direction:column}
+  .slide.on{display:flex}
+  .slide.dark{background:var(--navy);color:#fff}
+
+  .kicker{color:var(--orange-deep);font-size:13px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;margin-bottom:12px}
+  .slide.dark .kicker{color:var(--orange)}
+  h1.big{font-size:58px;font-weight:800;letter-spacing:-0.02em;line-height:1.05}
+  h1.head{font-size:40px;font-weight:800;letter-spacing:-0.02em;color:var(--navy);line-height:1.1}
+  .slide.dark h1.head{color:#fff}
+  .dash{width:36px;height:5px;background:var(--orange);border-radius:2px;margin:26px 0}
+  .dash.tight{margin:14px 0 26px}
+  .sub{font-size:22px;color:var(--fog);font-weight:400;margin-top:16px}
+  .footrow{margin-top:auto;display:flex;justify-content:space-between;color:#9DAEC6;font-size:14px}
+  .brandrow{display:flex;align-items:center;gap:16px;margin-bottom:8px}
+  .brandsep{width:1px;height:22px;background:rgba(255,255,255,.3)}
+  .brandtag{color:var(--orange);font-size:13px;font-weight:700;letter-spacing:.16em;text-transform:uppercase}
+
+  /* goal cards */
+  .goal{display:flex;gap:26px;border:1px solid var(--line);border-radius:10px;padding:22px 28px;margin-bottom:18px;background:var(--card)}
+  .goalnum{font-size:34px;font-weight:800;color:var(--orange-deep);letter-spacing:-0.02em;min-width:58px}
+  .goallabel{font-size:11px;font-weight:700;letter-spacing:.14em;color:#93A2AB;text-transform:uppercase;margin-bottom:4px}
+  .goaltitle{font-size:20px;font-weight:750;color:var(--navy);margin-bottom:5px}
+  .goalbody{font-size:14.5px;color:var(--slate);line-height:1.45}
+
+  /* two-col how */
+  .howgrid{display:grid;grid-template-columns:1fr 1fr;gap:28px;margin-top:8px}
+  .howcol{border:1px solid var(--line);border-radius:10px;padding:28px 30px;background:var(--card)}
+  .howicon{font-size:22px;color:var(--orange-deep);font-weight:800;margin-bottom:10px}
+  .howtitle{font-size:21px;font-weight:750;color:var(--navy);margin-bottom:10px}
+  .howbody{font-size:14.5px;color:var(--slate);line-height:1.55}
+  .howbody li{margin:0 0 8px 16px}
+  .rulebar{margin-top:26px;border-radius:10px;background:var(--wash);border:1px solid var(--line);padding:16px 24px;font-size:14px;color:var(--slate)}
+  .rulebar b{color:var(--navy)}
+
+  /* calendar */
+  .legend{display:flex;gap:22px;align-items:center;font-size:14px;color:var(--ink);font-weight:600}
+  .swatch{display:inline-block;width:9px;height:9px;border-radius:50%;background:var(--orange);margin-right:7px}
+  .swatch.open{background:#fff;border:2px solid var(--navy);width:7px;height:7px}
+  .calhead{display:flex;justify-content:space-between;align-items:flex-end}
+  .cal{display:grid;grid-template-columns:repeat(8,1fr);border-top:2px solid var(--navy);margin-top:22px}
+  .calcol{border-right:1px solid #EAE4D8;padding:16px 10px 0 12px;min-height:360px}
+  .calcol:last-child{border-right:none}
+  .calmon{font-size:19px;font-weight:800;color:var(--navy)}
+  .calyr{font-size:12px;color:#93A2AB;margin-bottom:14px}
+  .evc{border:1px solid var(--line);border-radius:7px;padding:10px 11px;margin-bottom:10px;background:#fff}
+  .evc .n{font-size:13.5px;font-weight:700;color:var(--navy);line-height:1.25}
+  .evc .d{font-size:12px;color:#7A8A93;margin-top:3px}
+  .evc.flag{background:var(--navy);border-color:var(--navy)}
+  .evc.flag .n{color:#fff}
+  .evc.flag .d{color:var(--fog)}
+  .evc.flag .tag{font-size:9.5px;font-weight:800;letter-spacing:.12em;color:var(--orange);text-transform:uppercase;margin-bottom:3px}
+  .evc.ghost{border:1px dashed #D8D1C2;background:transparent}
+  .evc.ghost .n{color:#A6A99E;font-weight:500}
+
+  /* tables */
+  table.ev{width:100%;border-collapse:collapse;margin-top:26px}
+  table.ev th{font-size:11.5px;font-weight:700;letter-spacing:.13em;text-transform:uppercase;color:#93A2AB;text-align:left;padding:0 10px 12px 0;border-bottom:2px solid var(--navy)}
+  table.ev th.r, table.ev td.r{text-align:right;padding-right:0}
+  table.ev td{padding:16px 10px 16px 0;border-bottom:1px solid #EAE4D8;vertical-align:top;font-size:14px;color:var(--slate);line-height:1.4}
+  table.ev td.n{font-size:15.5px;font-weight:750;color:var(--navy);white-space:nowrap}
+  table.ev td.c{font-size:17px;font-weight:800;color:var(--navy);white-space:nowrap}
+  table.ev tr.sum td{border-bottom:none;padding-top:22px}
+  table.ev tr.sum .lbl{font-size:12px;font-weight:700;letter-spacing:.13em;color:#93A2AB;text-transform:uppercase}
+  table.ev tr.sum .tot{font-size:22px;font-weight:800;color:var(--orange-deep)}
+  .tablenote{font-size:12.5px;color:#93A2AB;margin-top:18px;line-height:1.5}
+
+  /* detail slides */
+  .stats{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin:26px 0 30px}
+  .stat{border:1px solid var(--line);border-radius:9px;padding:16px 18px;background:var(--card)}
+  .stat .l{font-size:11px;font-weight:700;letter-spacing:.13em;color:#93A2AB;text-transform:uppercase;margin-bottom:7px}
+  .stat .v{font-size:19px;font-weight:800;color:var(--navy);letter-spacing:-0.01em;line-height:1.2}
+  .stat .v.money{color:var(--orange-deep)}
+  .stat .s{font-size:11.5px;color:#93A2AB;margin-top:4px}
+  .detgrid{display:grid;grid-template-columns:1.45fr 1fr;gap:44px;flex:1;min-height:0}
+  .h6{font-size:12.5px;font-weight:800;letter-spacing:.13em;color:var(--navy);text-transform:uppercase;margin-bottom:10px}
+  .what{font-size:14.5px;color:var(--slate);line-height:1.6;margin-bottom:22px}
+  ul.act{list-style:none}
+  ul.act li{font-size:14px;color:var(--ink);line-height:1.5;margin-bottom:9px;padding-left:18px;position:relative}
+  ul.act li::before{content:"";width:7px;height:7px;background:var(--orange);position:absolute;left:0;top:7px}
+  .badgecard{border-radius:12px;background:linear-gradient(160deg,var(--navy) 0%,#17365F 100%);color:#fff;padding:30px 30px;display:flex;flex-direction:column;justify-content:space-between;min-height:280px}
+  .badgecard .big-ab{font-size:44px;font-weight:800;letter-spacing:-0.02em;line-height:1.05}
+  .badgecard .vert{font-size:12px;font-weight:700;letter-spacing:.15em;text-transform:uppercase;color:var(--orange);margin-bottom:12px}
+  .badgecard .facts{font-size:13.5px;color:var(--fog);line-height:1.6;margin-top:18px}
+  .badgecard .facts b{color:#fff}
+
+  /* budget */
+  .bignum{font-size:64px;font-weight:800;letter-spacing:-0.02em;color:var(--navy)}
+  .bignum-note{font-size:15px;color:var(--slate);margin-left:14px}
+  .bar{display:flex;height:44px;border-radius:7px;overflow:hidden;margin:30px 0 34px}
+  .bar .seg{display:flex;align-items:center;padding-left:16px;font-size:14px;font-weight:700;color:#fff}
+  .budgrid{display:grid;grid-template-columns:repeat(3,1fr);gap:20px}
+  .budcard{border:1px solid var(--line);border-radius:10px;padding:22px 26px;background:var(--wash)}
+  .budcard .l{font-size:11.5px;font-weight:700;letter-spacing:.13em;color:#7A8A93;text-transform:uppercase;margin-bottom:8px}
+  .budcard .l .sq{display:inline-block;width:9px;height:9px;margin-right:8px}
+  .budcard .v{font-size:30px;font-weight:800;color:var(--navy)}
+  .budcard .s{font-size:13px;color:var(--slate);margin-top:5px}
+  .foot-note{font-size:13px;color:#93A2AB;margin-top:26px;line-height:1.5}
+
+  /* next steps slide */
+  .actgrid{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-top:6px}
+  .actcard{border:1px solid var(--line);border-radius:10px;padding:20px 24px;display:flex;gap:18px;background:var(--card)}
+  .actnum{font-size:24px;font-weight:800;color:var(--orange-deep);min-width:34px}
+  .acttitle{font-size:16px;font-weight:750;color:var(--navy);margin-bottom:4px}
+  .actbody{font-size:13.5px;color:var(--slate);line-height:1.45}
+  .actbody b{color:var(--navy)}
+</style>
+</head>
+<body>
+<div id="rail"></div>
+<div id="stage"><div id="frame"></div></div>
+
+<template id="slides">
+
+<!-- 1 · TITLE -->
+<section class="slide dark">
+  <div class="brandrow"><img src="data:image/png;base64,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" alt="ResQ" style="height:36px;display:block"><span class="brandsep"></span><span class="brandtag">Internal, Leadership Review</span></div>
+  <div style="margin-top:150px">
+    <div class="dash"></div>
+    <h1 class="big">FM Events Calendar</h1>
+    <p class="sub">A proposed facility management plan, July 2026 to Q1 2027</p>
+  </div>
+  <div class="footrow"><span>Facility management trade shows and association conferences</span><span>July 2026</span></div>
+</section>
+
+<!-- 2 · WHY -->
+<section class="slide">
+  <div class="kicker">The Goal</div>
+  <h1 class="head">Why we invest in FM events</h1>
+  <div class="dash tight"></div>
+  <div class="goal">
+    <div class="goalnum">01</div>
+    <div><div class="goallabel">Primary</div><div class="goaltitle">Strengthen relationships and open new opportunities</div>
+    <div class="goalbody">Every event is judged first on the relationships it builds and the pipeline it opens for RSG: new opportunities, warmer renewals, and stronger partnerships with the operators we serve.</div></div>
+  </div>
+  <div class="goal">
+    <div class="goalnum">02</div>
+    <div><div class="goallabel">Secondary</div><div class="goaltitle">Open the new verticals</div>
+    <div class="goalbody">Healthcare (ASHE), property and buildings (PM Expo, IFMA), and multi-site FM networks (Connex) are our expansion bets. The goal is first logos plus a real read on buyer fit.</div></div>
+  </div>
+  <div class="goal">
+    <div class="goalnum">03</div>
+    <div><div class="goallabel">Third</div><div class="goaltitle">Broaden our understanding of the industry</div>
+    <div class="goalbody">Entering new vertical events and forming relationships across them deepens our map of the FM landscape and tells us where next season's dollars should go.</div></div>
+  </div>
+</section>
+
+<!-- 3 · HOW -->
+<section class="slide">
+  <div class="kicker">The Playbook</div>
+  <h1 class="head">How we'll run FM events</h1>
+  <div class="dash tight"></div>
+  <div class="howgrid">
+    <div class="howcol">
+      <div class="howicon">●</div>
+      <div class="howtitle">Exhibit &amp; sponsor: 4 events, $35,000</div>
+      <div class="howbody">Full presence where the room is densest with our buyer, the cost is structurally low, or a relationship gives us leverage:
+        <ul style="margin-top:10px"><li><b>RFMA</b>, the anchor: full booth, 3 people on site (~$15K all-in)</li><li><b>R365 Transform</b>: expanded sponsorship off the existing partnership</li><li><b>IFMA World Workplace</b>: booth in front of the broadest FM audience</li><li><b>PM Expo (Buildings Show)</b>: Toronto home turf, no travel cost</li></ul>
+      </div>
+    </div>
+    <div class="howcol">
+      <div class="howicon">○</div>
+      <div class="howtitle">Attend &amp; scout: 3 events, $15,000</div>
+      <div class="howbody">One to two people, meetings booked two weeks ahead, exec dinners over booth spend. Each scout show ends with a one-page verdict: exhibit next year, keep scouting, or drop.
+        <ul style="margin-top:10px"><li>ASHE Innovation Conference (healthcare)</li><li>ConnexFM Mid-Year (multi-site FM network)</li><li>NFMT East (general FM, free registration)</li></ul>
+      </div>
+    </div>
+  </div>
+  <div class="rulebar"><b>House rules:</b> early-bird pricing on everything · 2 travelers per event, 3 at RFMA · every event gets a pre-booked meeting list and a 48-hour follow-up window.</div>
+</section>
+
+<!-- 4 · CALENDAR -->
+<section class="slide">
+  <div class="calhead">
+    <div><div class="kicker">The Calendar</div><h1 class="head">The 2026 to Q1 2027 season</h1></div>
+    <div class="legend"><span><span class="swatch"></span>Exhibit / sponsor</span><span><span class="swatch open"></span>Attend &amp; scout</span></div>
+  </div>
+  <div class="cal">
+    <div class="calcol"><div class="calmon">Aug</div><div class="calyr">2026</div>
+      <div class="evc"><div class="n">ASHE Innovation Conf.</div><div class="d">Aug 2–5 · Minneapolis</div></div>
+    </div>
+    <div class="calcol"><div class="calmon">Sep</div><div class="calyr">2026</div>
+      <div class="evc"><div class="n">ConnexFM Mid-Year</div><div class="d">Sep 22–23 · Louisville</div></div>
+    </div>
+    <div class="calcol"><div class="calmon">Oct</div><div class="calyr">2026</div>
+      <div class="evc ghost"><div class="n">Open, planning &amp; follow-up</div></div>
+    </div>
+    <div class="calcol"><div class="calmon">Nov</div><div class="calyr">2026</div>
+      <div class="evc flag"><div class="tag">Sponsor</div><div class="n">R365 Transform</div><div class="d">Nov 1–3 · Scottsdale</div></div>
+      <div class="evc flag"><div class="tag">Exhibit</div><div class="n">IFMA World Workplace</div><div class="d">Nov 18–20 · Anaheim</div></div>
+    </div>
+    <div class="calcol"><div class="calmon">Dec</div><div class="calyr">2026</div>
+      <div class="evc flag"><div class="tag">Exhibit</div><div class="n">Buildings Show / PM Expo</div><div class="d">Dec 2–4 · Toronto</div></div>
+    </div>
+    <div class="calcol"><div class="calmon">Jan</div><div class="calyr">2027</div>
+      <div class="evc ghost"><div class="n">Open, planning</div></div>
+    </div>
+    <div class="calcol"><div class="calmon">Feb</div><div class="calyr">2027</div>
+      <div class="evc ghost"><div class="n">Open, RFMA prep</div></div>
+    </div>
+    <div class="calcol"><div class="calmon">Mar</div><div class="calyr">2027</div>
+      <div class="evc flag"><div class="tag">Exhibit</div><div class="n">RFMA 2027</div><div class="d">March · dates TBD</div></div>
+      <div class="evc"><div class="n">NFMT East</div><div class="d">Mar 31–Apr 2 · Baltimore</div></div>
+    </div>
+  </div>
+</section>
+
+<!-- 5 · DIVIDER EXHIBIT -->
+<section class="slide dark">
+  <div class="kicker">Part 1</div>
+  <div style="margin-top:190px">
+    <div class="dash"></div>
+    <h1 class="big" style="font-size:48px">Exhibit and sponsor events</h1>
+    <p class="sub" style="font-size:19px">Four commitments where we put a booth or sponsorship on the floor.</p>
+  </div>
+  <div class="footrow"><span>RFMA 2027 · R365 Transform · IFMA World Workplace · Buildings Show / PM Expo</span><span>$35,000</span></div>
+</section>
+
+<!-- 6 · EXHIBIT TABLE -->
+<section class="slide">
+  <div class="kicker">The Proposed Events, Part 1</div>
+  <h1 class="head">Exhibit and sponsor events</h1>
+  <table class="ev">
+    <tr><th>Event</th><th>What we get</th><th>Location</th><th>Dates</th><th class="r">Cost</th></tr>
+    <tr><td class="n">RFMA 2027</td><td>The restaurant facilities event; 10x10 member booth, Express Exchange buyer meetings, 3 people on site</td><td>TBD (2026: Denver)</td><td>March 2027, TBD</td><td class="c r">$15,000</td></tr>
+    <tr><td class="n">R365 Transform</td><td>Expanded sponsorship leveraging the existing R365 partnership; a warm room that has performed for us</td><td>Scottsdale, AZ</td><td>Nov 1–3, 2026</td><td class="c r">$8,000</td></tr>
+    <tr><td class="n">IFMA World Workplace</td><td>10x10 booth at the biggest general-FM show of the season; includes 2 full registrations</td><td>Anaheim, CA</td><td>Nov 18–20, 2026</td><td class="c r">$7,000</td></tr>
+    <tr><td class="n">Buildings Show / PM Expo</td><td>Toronto home turf; property &amp; facility managers, 120+ sessions; zero travel cost</td><td>Toronto, ON</td><td>Dec 2–4, 2026</td><td class="c r">$5,000</td></tr>
+    <tr class="sum"><td class="lbl">Exhibit subtotal</td><td></td><td></td><td></td><td class="tot r">$35,000</td></tr>
+  </table>
+  <p class="tablenote">Verified: RFMA booth pricing ($5,000 member 10x10, official 2026 prospectus). Estimates pending quotes: R365 sponsorship, IFMA booth, PM Expo current rate. All figures include travel and activation costs.</p>
+</section>
+
+<!-- 7 · RFMA -->
+<section class="slide">
+  <div class="kicker">Flagship · Restaurant Facilities</div>
+  <h1 class="head">RFMA 2027</h1>
+  <div class="dash tight" style="margin-bottom:0"></div>
+  <div class="stats">
+    <div class="stat"><div class="l">Dates</div><div class="v">March 2027</div><div class="s">TBD, save-the-date live</div></div>
+    <div class="stat"><div class="l">Location</div><div class="v">TBD</div><div class="s">2026 was Denver</div></div>
+    <div class="stat"><div class="l">Audience</div><div class="v">2,000+ FM pros</div><div class="s">restaurant facilities leaders</div></div>
+    <div class="stat"><div class="l">Booth + 3 Staff</div><div class="v money">$15,000</div><div class="s">$5K booth · $850 dues · travel &amp; activation</div></div>
+  </div>
+  <div class="detgrid">
+    <div>
+      <div class="h6">What it is</div>
+      <p class="what">The only national conference built entirely around restaurant facility management: our exact buyer, wall to wall. We're recurring attendees at RFMA, and 2027 is the anchor of this plan, with a full booth and at least 3 people on site.</p>
+      <div class="h6">Activation opportunities</div>
+      <ul class="act">
+        <li>Inline 10x10 member booth at $5,000 (verified in the official prospectus; vendor membership $850/yr)</li>
+        <li>Express Exchange speed meetings with FM buyers, included with the booth</li>
+        <li>3 people on site: booth rotation plus pre-booked meetings and customer dinners</li>
+        <li>Budget covers travel, shipping, collateral, and hosted dinners; contact RFMA now to lock placement when 2027 dates drop</li>
+      </ul>
+    </div>
+    <div class="badgecard">
+      <div><div class="vert">Restaurant FM</div><div class="big-ab">RFMA</div></div>
+      <div class="facts"><b>Organizer:</b> RFMA (association)<br><b>Format:</b> expo + education + buyer exchange<br><b>Status:</b> dates unannounced, book on release</div>
+    </div>
+  </div>
+</section>
+
+<!-- 8 · R365 (SPONSOR) -->
+<section class="slide">
+  <div class="kicker">Sponsor · Partner Ecosystem, Restaurant Back Office</div>
+  <h1 class="head">R365 Transform 2026</h1>
+  <div class="dash tight" style="margin-bottom:0"></div>
+  <div class="stats">
+    <div class="stat"><div class="l">Dates</div><div class="v">Nov 1–3, 2026</div></div>
+    <div class="stat"><div class="l">Location</div><div class="v">Scottsdale, AZ</div></div>
+    <div class="stat"><div class="l">Audience</div><div class="v">R365 customers</div><div class="s">multi-unit ops + finance leaders</div></div>
+    <div class="stat"><div class="l">Sponsorship</div><div class="v money">$8,000</div><div class="s">expanded package, custom quote</div></div>
+  </div>
+  <div class="detgrid">
+    <div>
+      <div class="h6">What it is</div>
+      <p class="what">Restaurant365's customer conference, and the warmest room in the plan. We already have a working relationship with R365 and this event has been good for us historically, so we're budgeting above entry level to secure stronger placement.</p>
+      <div class="h6">Activation opportunities</div>
+      <ul class="act">
+        <li>Expanded sponsorship (Solutions Bar / vendor showcase plus add-ons); packages are custom, price via the R365 partner team now</li>
+        <li>Put the integration story front and center; pursue a co-present or joint demo slot</li>
+        <li>Sponsorships typically include passes; confirm count before buying extras ($399 early bird ends Jul 15 as fallback)</li>
+        <li>Use the extra budget for a roundtable or VIP dinner add-on if available</li>
+      </ul>
+    </div>
+    <div class="badgecard">
+      <div><div class="vert">Restaurant Ops</div><div class="big-ab">R365</div></div>
+      <div class="facts"><b>Organizer:</b> Restaurant365<br><b>Format:</b> customer conference<br><b>Edge:</b> existing partnership, strong past results</div>
+    </div>
+  </div>
+</section>
+
+<!-- 9 · IFMA WW (EXHIBIT) -->
+<section class="slide">
+  <div class="kicker">Exhibit · General Facility Management</div>
+  <h1 class="head">IFMA World Workplace 2026</h1>
+  <div class="dash tight" style="margin-bottom:0"></div>
+  <div class="stats">
+    <div class="stat"><div class="l">Dates</div><div class="v">Nov 18–20, 2026</div></div>
+    <div class="stat"><div class="l">Location</div><div class="v">Anaheim, CA</div><div class="s">Anaheim Convention Center</div></div>
+    <div class="stat"><div class="l">Audience</div><div class="v">4,000–5,000 FMs</div><div class="s">all verticals, IFMA flagship</div></div>
+    <div class="stat"><div class="l">Booth + Travel</div><div class="v money">$7,000</div><div class="s">estimate, quote via prospectus</div></div>
+  </div>
+  <div class="detgrid">
+    <div>
+      <div class="h6">What it is</div>
+      <p class="what">The biggest general-FM gathering of the season. A booth here puts our multi-site story in front of facilities leaders from every vertical we're expanding into, in a single trip.</p>
+      <div class="h6">Activation opportunities</div>
+      <ul class="act">
+        <li>10x10 expo booth; pricing runs through the exhibitor prospectus (expo@ifma.org), quote needed</li>
+        <li>Each 10x10 includes 2 full-event registrations plus 2 booth-staff badges (verified in exhibitor FAQ)</li>
+        <li>Expo-only badges ($149) for any extra teammates in SoCal</li>
+        <li>Note: overlaps ISSA Show in Las Vegas; we skip ISSA this cycle</li>
+      </ul>
+    </div>
+    <div class="badgecard">
+      <div><div class="vert">General FM</div><div class="big-ab">IFMA</div></div>
+      <div class="facts"><b>Organizer:</b> IFMA (association)<br><b>Format:</b> large conference + expo<br><b>Role:</b> new-vertical booth debut at the broadest FM show</div>
+    </div>
+  </div>
+</section>
+
+<!-- 10 · PM EXPO -->
+<section class="slide">
+  <div class="kicker">Exhibit · Property &amp; Buildings, Home Turf</div>
+  <h1 class="head">The Buildings Show / PM Expo</h1>
+  <div class="dash tight" style="margin-bottom:0"></div>
+  <div class="stats">
+    <div class="stat"><div class="l">Dates</div><div class="v">Dec 2–4, 2026</div></div>
+    <div class="stat"><div class="l">Location</div><div class="v">Toronto, ON</div><div class="s">Metro Toronto Convention Centre</div></div>
+    <div class="stat"><div class="l">Audience</div><div class="v">Property &amp; facility managers</div><div class="s">building owners, RE pros</div></div>
+    <div class="stat"><div class="l">Booth</div><div class="v money">$5,000</div><div class="s">~100 sq ft · no travel cost</div></div>
+  </div>
+  <div class="detgrid">
+    <div>
+      <div class="h6">What it is</div>
+      <p class="what">North America's largest buildings-industry show, in our backyard. PM Expo spans 100,000+ sq ft with 120+ sessions aimed at property and facility managers. It's the cheapest possible test of the property vertical because the whole team can rotate through with zero travel spend.</p>
+      <div class="h6">Activation opportunities</div>
+      <ul class="act">
+        <li>10x10 booth; historical rate ~CAD $34/sq ft, confirm current pricing with TBS@informa.com</li>
+        <li>Full team rotation on the floor (local); everyone gets reps in the new vertical</li>
+        <li>Informa event: ask about portfolio pricing across their shows</li>
+        <li>20% group discount on 5+ attendee passes for extra staff</li>
+      </ul>
+    </div>
+    <div class="badgecard">
+      <div><div class="vert">Property · Buildings</div><div class="big-ab">PM Expo</div></div>
+      <div class="facts"><b>Organizer:</b> Informa<br><b>Format:</b> large expo + conference<br><b>Edge:</b> home turf, highest floor-time per dollar in the plan</div>
+    </div>
+  </div>
+</section>
+
+<!-- 11 · DIVIDER ATTEND -->
+<section class="slide dark">
+  <div class="kicker">Part 2</div>
+  <div style="margin-top:190px">
+    <div class="dash"></div>
+    <h1 class="big" style="font-size:48px">Attend and scout events</h1>
+    <p class="sub" style="font-size:19px">Three shows where we buy badges, book meetings ahead, and decide where next year's exhibit dollars go.</p>
+  </div>
+  <div class="footrow"><span>ASHE Innovation · ConnexFM Mid-Year · NFMT East</span><span>$15,000</span></div>
+</section>
+
+<!-- 12 · ATTEND TABLE -->
+<section class="slide">
+  <div class="kicker">The Proposed Events, Part 2</div>
+  <h1 class="head">Attend and scout events</h1>
+  <table class="ev">
+    <tr><th>Event</th><th>What we get</th><th>Location</th><th>Dates</th><th class="r">Cost</th></tr>
+    <tr><td class="n">ASHE Innovation Conf.</td><td>Flagship healthcare FM show; first probe of the healthcare vertical, 2 attendees</td><td>Minneapolis, MN</td><td>Aug 2–5, 2026</td><td class="c r">$3,800</td></tr>
+    <tr><td class="n">ConnexFM Mid-Year</td><td>2 supplier passes + membership; roundtables with multi-site retail/restaurant FMs</td><td>Louisville, KY</td><td>Sep 22–23, 2026</td><td class="c r">$9,700</td></tr>
+    <tr><td class="n">NFMT East</td><td>Free registration; 4,000–5,000 in-house FMs; speaker submission in flight</td><td>Baltimore, MD</td><td>Mar 31–Apr 2, 2027</td><td class="c r">$1,500</td></tr>
+    <tr class="sum"><td class="lbl">Attend &amp; scout subtotal</td><td></td><td></td><td></td><td class="tot r">$15,000</td></tr>
+  </table>
+  <p class="tablenote">Verified: Connex supplier passes ($3,000 each, max 2 per company) and membership tiers ($1,100 to $3,300/yr); NFMT free registration. Estimate: ASHE registration (published via Cvent only). Figures include travel.</p>
+</section>
+
+<!-- 13 · ASHE (ATTEND) -->
+<section class="slide">
+  <div class="kicker">New Vertical · Healthcare Facilities</div>
+  <h1 class="head">ASHE Health Care Facilities Innovation Conference</h1>
+  <div class="dash tight" style="margin-bottom:0"></div>
+  <div class="stats">
+    <div class="stat"><div class="l">Dates</div><div class="v">Aug 2–5, 2026</div><div class="s">4 weeks out, act now</div></div>
+    <div class="stat"><div class="l">Location</div><div class="v">Minneapolis, MN</div></div>
+    <div class="stat"><div class="l">Audience</div><div class="v">Hospital FM leaders</div><div class="s">health-system facilities engineers</div></div>
+    <div class="stat"><div class="l">2 Attendees</div><div class="v money">$3,800</div><div class="s">reg + travel</div></div>
+  </div>
+  <div class="detgrid">
+    <div>
+      <div class="h6">What it is</div>
+      <p class="what">ASHE's flagship: the healthcare equivalent of RFMA, with hospital and health-system facilities directors in one room. We won't be ready to sponsor or exhibit this year, so we attend, learn the room, and build the relationships that set up a proper presence in 2027.</p>
+      <div class="h6">Activation opportunities</div>
+      <ul class="act">
+        <li>2 attendees walking sessions and the expo floor; no booth this year</li>
+        <li>Pre-book meetings with 10 health-system facilities leaders</li>
+        <li>Output decides whether we do ASHE PDC Summit (Feb 28 to Mar 3, New Orleans) and a 2027 booth</li>
+        <li>Registration runs via Cvent; pricing not public, register immediately</li>
+      </ul>
+    </div>
+    <div class="badgecard">
+      <div><div class="vert">Healthcare</div><div class="big-ab">ASHE</div></div>
+      <div class="facts"><b>Organizer:</b> ASHE (American Hospital Association)<br><b>Format:</b> conference + expo<br><b>Note:</b> tightest deadline in the plan</div>
+    </div>
+  </div>
+</section>
+
+<!-- 14 · CONNEX -->
+<section class="slide">
+  <div class="kicker">Multi-Site FM Network</div>
+  <h1 class="head">ConnexFM Mid-Year Conference</h1>
+  <div class="dash tight" style="margin-bottom:0"></div>
+  <div class="stats">
+    <div class="stat"><div class="l">Dates</div><div class="v">Sep 22–23, 2026</div></div>
+    <div class="stat"><div class="l">Location</div><div class="v">Louisville, KY</div><div class="s">The Galt House</div></div>
+    <div class="stat"><div class="l">Audience</div><div class="v">Multi-site FMs</div><div class="s">retail + restaurant chains</div></div>
+    <div class="stat"><div class="l">2 Passes + Dues</div><div class="v money">$9,700</div><div class="s">$3K/pass · $2.2K membership</div></div>
+  </div>
+  <div class="detgrid">
+    <div>
+      <div class="h6">What it is</div>
+      <p class="what">ConnexFM (formerly PRSM) is THE multi-site facilities network. Mid-Year has no trade-show floor; it's roundtables and structured supplier speed-networking, which suits a relationship play better than a booth anyway. Supplier passes are capped at 2 per company.</p>
+      <div class="h6">Activation opportunities</div>
+      <ul class="act">
+        <li>2 supplier passes ($3,000 each, company max) plus supplier membership ($2,200 tier)</li>
+        <li>Quick Connect speed-networking puts us in front of every FM buyer in the room</li>
+        <li>Membership carries into ConnexFM National (April 2027, National Harbor, 2,200+ attendees), the single best multi-site FM event; budget it in the FY28 plan</li>
+        <li>Roundtables double as vertical-by-vertical market intel</li>
+      </ul>
+    </div>
+    <div class="badgecard">
+      <div><div class="vert">Multi-Site FM</div><div class="big-ab">Connex</div></div>
+      <div class="facts"><b>Organizer:</b> ConnexFM (association)<br><b>Format:</b> roundtables + speed-networking, no expo<br><b>Bonus:</b> membership unlocks April National</div>
+    </div>
+  </div>
+</section>
+
+<!-- 15 · NFMT -->
+<section class="slide">
+  <div class="kicker">General FM · Highest Volume Per Dollar</div>
+  <h1 class="head">NFMT East 2027</h1>
+  <div class="dash tight" style="margin-bottom:0"></div>
+  <div class="stats">
+    <div class="stat"><div class="l">Dates</div><div class="v">Mar 31–Apr 2, 2027</div></div>
+    <div class="stat"><div class="l">Location</div><div class="v">Baltimore, MD</div><div class="s">Baltimore Convention Center</div></div>
+    <div class="stat"><div class="l">Audience</div><div class="v">4,000–5,000 FMs</div><div class="s">corporate, healthcare, education, gov</div></div>
+    <div class="stat"><div class="l">2 Attendees</div><div class="v money">$1,500</div><div class="s">registration is free, travel only</div></div>
+  </div>
+  <div class="detgrid">
+    <div>
+      <div class="h6">What it is</div>
+      <p class="what">Free attendee registration makes NFMT the cheapest at-bat in the plan: thousands of in-house facilities professionals for the cost of travel. It closes out the season and feeds directly into FY28 exhibit decisions.</p>
+      <div class="h6">Activation opportunities</div>
+      <ul class="act">
+        <li>2 attendees, $0 registration (Pro upgrade is $79 if needed)</li>
+        <li>Speaker application is free, deadline Aug 28, 2026; submit a multi-site R&amp;M ops session for free stage presence</li>
+        <li>90+ sessions, 400+ exhibitors, full competitive sweep</li>
+        <li>Booth pricing unpublished; collect a quote on site for FY28</li>
+      </ul>
+    </div>
+    <div class="badgecard">
+      <div><div class="vert">General FM</div><div class="big-ab">NFMT</div></div>
+      <div class="facts"><b>Organizer:</b> Trade Press Media<br><b>Format:</b> free-reg expo + education<br><b>Play:</b> speak, don't sponsor</div>
+    </div>
+  </div>
+</section>
+
+<!-- 16 · BUDGET -->
+<section class="slide">
+  <div class="kicker">The Numbers</div>
+  <h1 class="head">Budget allocation</h1>
+  <div style="margin-top:26px"><span class="bignum">$50,000</span><span class="bignum-note">fully committed across 7 events: $35K exhibit &amp; sponsor, $15K attend &amp; scout</span></div>
+  <div class="bar">
+    <div class="seg" style="flex:35000;background:var(--navy)">Exhibit &amp; sponsor</div>
+    <div class="seg" style="flex:15000;background:var(--orange)">Attend &amp; scout</div>
+  </div>
+  <div class="budgrid">
+    <div class="budcard"><div class="l"><span class="sq" style="background:var(--navy)"></span>Exhibit &amp; Sponsor</div><div class="v">$35,000</div><div class="s">4 events: RFMA, R365, IFMA WW, PM Expo</div></div>
+    <div class="budcard"><div class="l"><span class="sq" style="background:var(--orange)"></span>Attend &amp; Scout</div><div class="v">$15,000</div><div class="s">3 events: ASHE, Connex, NFMT</div></div>
+    <div class="budcard"><div class="l"><span class="sq" style="background:#8A97A8"></span>Anchor</div><div class="v">$15,000</div><div class="s">RFMA takes 30% of the budget as the flagship</div></div>
+  </div>
+  <p class="foot-note">Verified pricing: RFMA booth ($5,000 member 10x10, 2026 prospectus), Connex passes and membership, R365 attendee early bird, IFMA attendee rates and booth inclusions, NFMT free registration. Estimates pending quotes: R365 sponsorship package, IFMA booth, PM Expo current rate, ASHE registration. Travel modeled at 2 people per event, 3 for RFMA.</p>
+</section>
+
+<!-- 17 · NEXT STEPS -->
+<section class="slide">
+  <div class="kicker">From Here</div>
+  <h1 class="head">Next steps</h1>
+  <div class="dash tight"></div>
+  <div class="actgrid">
+    <div class="actcard"><div class="actnum">01</div><div><div class="acttitle">Approval on plan</div><div class="actbody"><b>Fern and Meaghan.</b> Sign off on the event lineup and the exhibit/attend split.</div></div></div>
+    <div class="actcard"><div class="actnum">02</div><div><div class="acttitle">Approval of budget and direction</div><div class="actbody"><b>KJ and Kori.</b> Confirm the $50K allocation and the new-vertical strategy.</div></div></div>
+    <div class="actcard"><div class="actnum">03</div><div><div class="acttitle">Design booth and activation plan</div><div class="actbody"><b>Fran.</b> Booth concept, messaging by vertical, and activation details for RFMA, R365, IFMA WW, and PM Expo.</div></div></div>
+    <div class="actcard"><div class="actnum">04</div><div><div class="acttitle">Book and plan travels</div><div class="actbody"><b>Fran.</b> Registrations, quotes, and travel for all 7 events, starting with the nearest deadlines.</div></div></div>
+  </div>
+  <div class="rulebar"><b>Clock is ticking:</b> ASHE registration (event is Aug 2) · IFMA early bird ends Aug 14 + booth quote · NFMT speaker deadline Aug 28 · R365 sponsorship quote · RFMA 2027 dates, watch for release.</div>
+</section>
+
+</template>
+
+<script>
+(function(){
+  const tpl=document.getElementById('slides');
+  const frame=document.getElementById('frame');
+  const rail=document.getElementById('rail');
+  const slides=[...tpl.content.querySelectorAll('.slide')];
+  slides.forEach((s,i)=>{
+    const main=s.cloneNode(true); main.dataset.i=i; frame.appendChild(main);
+    const w=document.createElement('div'); w.className='thumbwrap';
+    w.innerHTML='<div class="thumbnum">'+(i+1)+'</div>';
+    const t=document.createElement('div'); t.className='thumb';
+    const mini=s.cloneNode(true); mini.classList.add('mini','on'); mini.style.display='flex';
+    t.appendChild(mini); w.appendChild(t); rail.appendChild(w);
+    w.addEventListener('click',()=>go(i));
+  });
+  const mains=[...frame.querySelectorAll(':scope > .slide')];
+  const thumbs=[...rail.querySelectorAll('.thumbwrap')];
+  let cur=-1;
+  function go(i){
+    i=Math.max(0,Math.min(slides.length-1,i));
+    if(i===cur)return; cur=i;
+    mains.forEach((m,j)=>m.classList.toggle('on',j===i));
+    thumbs.forEach((t,j)=>t.classList.toggle('active',j===i));
+    location.hash='#'+(i+1);
+    thumbs[i].scrollIntoView({block:'nearest'});
+  }
+  function fit(){
+    const st=document.getElementById('stage');
+    const s=Math.min(st.clientWidth/1280,st.clientHeight/720);
+    frame.style.transform='scale('+s+')';
+  }
+  window.addEventListener('resize',fit);
+  document.addEventListener('keydown',e=>{
+    if(e.key==='ArrowRight'||e.key==='ArrowDown'||e.key===' ')go(cur+1);
+    if(e.key==='ArrowLeft'||e.key==='ArrowUp')go(cur-1);
+  });
+  fit();
+  go((parseInt(location.hash.slice(1))||1)-1);
+})();
+</script>
+</body>
+</html>
