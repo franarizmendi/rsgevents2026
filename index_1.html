@@ -1,0 +1,735 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>RSG Events Plan</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap');
+  :root{
+    --navy:#0B1F3A; --orange:#F25C1F; --orange-deep:#B5400D; --ink:#0B1F3A;
+    --slate:#5A6470; --fog:#C9D4E3; --cream:#F5F2EC; --line:#E2DCCF; --card:#FFFFFF; --wash:#FAF8F3;
+  }
+  *{margin:0;padding:0;box-sizing:border-box}
+  html,body{height:100%}
+  body{font-family:'Inter',-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;background:#0B0B0C;color:var(--ink);overflow:hidden;display:flex}
+
+  #rail{width:184px;min-width:184px;height:100vh;overflow-y:auto;background:#0B0B0C;padding:12px 10px 24px 26px}
+  .thumbwrap{position:relative;margin-bottom:14px;cursor:pointer}
+  .thumbnum{position:absolute;left:-18px;top:2px;color:#9AA3A9;font-size:11px;font-weight:600}
+  .thumb{width:148px;height:83px;border-radius:4px;overflow:hidden;position:relative;background:#fff;border:2px solid transparent}
+  .thumbwrap.active .thumb{border-color:var(--orange)}
+  .thumb .mini{width:1280px;height:720px;transform:scale(0.1125);transform-origin:top left;position:absolute;top:0;left:0;pointer-events:none}
+
+  #stage{flex:1;height:100vh;display:flex;align-items:center;justify-content:center;position:relative}
+  #frame{width:1280px;height:720px;transform-origin:center center;position:relative}
+
+  .slide{width:1280px;height:720px;background:var(--cream);padding:64px 80px;position:absolute;inset:0;display:none;flex-direction:column}
+  .slide.on{display:flex}
+  .slide.dark{background:var(--navy);color:#fff}
+
+  .kicker{color:var(--orange-deep);font-size:13px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;margin-bottom:12px}
+  .slide.dark .kicker{color:var(--orange)}
+  h1.big{font-size:58px;font-weight:800;letter-spacing:-0.02em;line-height:1.05}
+  h1.head{font-size:38px;font-weight:800;letter-spacing:-0.02em;color:var(--navy);line-height:1.1}
+  .slide.dark h1.head{color:#fff}
+  .dash{width:36px;height:5px;background:var(--orange);border-radius:2px;margin:26px 0}
+  .dash.tight{margin:12px 0 22px}
+  .sub{font-size:22px;color:var(--fog);font-weight:400;margin-top:16px}
+  .footrow{margin-top:auto;display:flex;justify-content:space-between;color:#9DAEC6;font-size:14px}
+  .brandrow{display:flex;align-items:center;gap:16px;margin-bottom:8px}
+  .brandsep{width:1px;height:22px;background:rgba(255,255,255,.3)}
+  .brandtag{color:var(--orange);font-size:13px;font-weight:700;letter-spacing:.16em;text-transform:uppercase}
+
+  .goal{display:flex;gap:26px;border:1px solid var(--line);border-radius:10px;padding:22px 28px;margin-bottom:18px;background:var(--card)}
+  .goalnum{font-size:34px;font-weight:800;color:var(--orange-deep);letter-spacing:-0.02em;min-width:58px}
+  .goallabel{font-size:11px;font-weight:700;letter-spacing:.14em;color:#93A2AB;text-transform:uppercase;margin-bottom:4px}
+  .goaltitle{font-size:20px;font-weight:750;color:var(--navy);margin-bottom:5px}
+  .goalbody{font-size:14.5px;color:var(--slate);line-height:1.45}
+
+  .filtergrid{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-top:4px}
+  .fcard{border:1px solid var(--line);border-radius:10px;padding:18px 22px;background:var(--card);display:flex;gap:16px}
+  .fnum{font-size:22px;font-weight:800;color:var(--orange-deep);min-width:30px}
+  .ftitle{font-size:15.5px;font-weight:750;color:var(--navy);margin-bottom:3px}
+  .fbody{font-size:12.5px;color:var(--slate);line-height:1.45}
+  .rulebar{margin-top:20px;border-radius:10px;background:var(--wash);border:1px solid var(--line);padding:14px 22px;font-size:13.5px;color:var(--slate)}
+  .rulebar b{color:var(--navy)}
+
+  .legend{display:flex;gap:20px;align-items:center;font-size:13px;color:var(--ink);font-weight:600}
+  .swatch{display:inline-block;width:9px;height:9px;border-radius:50%;background:var(--orange);margin-right:6px}
+  .swatch.open{background:#fff;border:2px solid var(--navy);width:7px;height:7px}
+  .swatch.dec{background:transparent;border:2px dashed var(--orange-deep);width:7px;height:7px;border-radius:2px}
+  .calhead{display:flex;justify-content:space-between;align-items:flex-end}
+  .cal{display:grid;grid-template-columns:repeat(7,1fr);border-top:2px solid var(--navy);margin-top:20px}
+  .calcol{border-right:1px solid #EAE4D8;padding:14px 9px 0 11px;min-height:380px}
+  .calcol:last-child{border-right:none}
+  .calmon{font-size:18px;font-weight:800;color:var(--navy)}
+  .calyr{font-size:12px;color:#93A2AB;margin-bottom:12px}
+  .evc{border:1px solid var(--line);border-radius:7px;padding:9px 10px;margin-bottom:9px;background:#fff}
+  .evc .n{font-size:13px;font-weight:700;color:var(--navy);line-height:1.25}
+  .evc .d{font-size:11.5px;color:#7A8A93;margin-top:3px}
+  .evc .tag{font-size:9px;font-weight:800;letter-spacing:.12em;text-transform:uppercase;margin-bottom:3px;color:var(--orange)}
+  .evc.flag{background:var(--navy);border-color:var(--navy)}
+  .evc.flag .n{color:#fff}
+  .evc.flag .d{color:var(--fog)}
+  .evc.opt{border:1.5px dashed var(--orange-deep);background:var(--wash)}
+  .evc.opt .tag{color:var(--orange-deep)}
+  .evc.ghost{border:1px dashed #D8D1C2;background:transparent}
+  .evc.ghost .n{color:#A6A99E;font-weight:500}
+
+  /* detail slides */
+  .stats{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin:22px 0 26px}
+  .stat{border:1px solid var(--line);border-radius:9px;padding:14px 16px;background:var(--card)}
+  .stat .l{font-size:11px;font-weight:700;letter-spacing:.13em;color:#93A2AB;text-transform:uppercase;margin-bottom:6px}
+  .stat .v{font-size:18px;font-weight:800;color:var(--navy);letter-spacing:-0.01em;line-height:1.2}
+  .stat .v.money{color:var(--orange-deep)}
+  .stat .s{font-size:11px;color:#93A2AB;margin-top:4px}
+  .detgrid{display:grid;grid-template-columns:1.45fr 1fr;gap:44px;flex:1;min-height:0}
+  .h6{font-size:12.5px;font-weight:800;letter-spacing:.13em;color:var(--navy);text-transform:uppercase;margin-bottom:9px}
+  .what{font-size:14px;color:var(--slate);line-height:1.55;margin-bottom:18px}
+  ul.act{list-style:none}
+  ul.act li{font-size:13.5px;color:var(--ink);line-height:1.45;margin-bottom:8px;padding-left:18px;position:relative}
+  ul.act li::before{content:"";width:7px;height:7px;background:var(--orange);position:absolute;left:0;top:6px}
+  .badgecard{border-radius:12px;background:linear-gradient(160deg,var(--navy) 0%,#17365F 100%);color:#fff;padding:28px 28px;display:flex;flex-direction:column;justify-content:space-between;min-height:260px}
+  .badgecard .big-ab{font-size:40px;font-weight:800;letter-spacing:-0.02em;line-height:1.05}
+  .badgecard .vert{font-size:12px;font-weight:700;letter-spacing:.15em;text-transform:uppercase;color:var(--orange);margin-bottom:12px}
+  .badgecard .facts{font-size:13px;color:var(--fog);line-height:1.55;margin-top:16px}
+  .badgecard .facts b{color:#fff}
+
+  /* budget builder (compact) */
+  table.bd{width:100%;border-collapse:collapse;margin-top:16px}
+  table.bd th{font-size:10.5px;font-weight:700;letter-spacing:.11em;text-transform:uppercase;color:#93A2AB;text-align:left;padding:0 8px 8px 0;border-bottom:2px solid var(--navy)}
+  table.bd th.r, table.bd td.r{text-align:right;padding-right:0}
+  table.bd td{padding:6px 8px 6px 0;border-bottom:1px solid #EAE4D8;font-size:12.5px;color:var(--slate);vertical-align:middle;white-space:nowrap}
+  table.bd td.n{font-weight:750;color:var(--navy);font-size:13px}
+  table.bd td.c{font-weight:800;color:var(--navy);font-size:13px}
+  table.bd td.lt{color:var(--orange-deep)}
+  tr.brow.off td{opacity:.42}
+  tr.brow.off td.c{text-decoration:line-through}
+  tr.brow td.chk{opacity:1 !important}
+  .chk input{accent-color:var(--orange);width:15px;height:15px;vertical-align:-2px;cursor:pointer}
+  .chk .lbl{font-size:11px;font-weight:700;margin-left:6px;color:var(--navy);display:inline-block;width:42px}
+  tr.brow.off .chk .lbl{color:#A6A99E}
+  .pill{display:inline-block;font-size:8.5px;font-weight:800;letter-spacing:.09em;text-transform:uppercase;padding:2px 6px;border-radius:4px;margin-left:7px;vertical-align:1px}
+  .pill.keep{background:var(--navy);color:#fff}
+  .pill.dec{background:transparent;border:1px dashed var(--orange-deep);color:var(--orange-deep)}
+  .pill.fy{background:#E4E0D6;color:#7A8A93}
+  tr.prod td{background:var(--wash);font-weight:600}
+  .totbar{margin-top:16px;display:flex;gap:16px;align-items:center}
+  .totcard{border:1px solid var(--line);border-radius:9px;padding:10px 18px;background:var(--card)}
+  .totcard .l{font-size:9.5px;font-weight:700;letter-spacing:.11em;color:#93A2AB;text-transform:uppercase}
+  .totcard .v{font-size:20px;font-weight:800;color:var(--navy)}
+  .totcard.grand{background:var(--navy);border-color:var(--navy);margin-left:auto}
+  .totcard.grand .l{color:var(--fog)}
+  .totcard.grand .v{color:#fff;font-size:24px}
+
+  /* travel roster */
+  table.tr{width:100%;border-collapse:collapse;margin-top:14px;table-layout:fixed}
+  table.tr th{font-size:10.5px;font-weight:700;letter-spacing:.11em;text-transform:uppercase;color:#93A2AB;text-align:left;padding:0 8px 8px 0;border-bottom:2px solid var(--navy)}
+  table.tr td{padding:5px 8px 5px 0;border-bottom:1px solid #EAE4D8;font-size:12.5px;color:var(--slate);vertical-align:middle;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  table.tr td.n{font-weight:750;color:var(--navy);font-size:13px}
+  table.tr td.tv{font-weight:700;color:var(--navy)}
+  table.tr td.seat{font-weight:800;color:var(--orange-deep);text-align:center}
+  table.tr th.seat{text-align:center}
+  table.tr td.who{padding:3px 6px 3px 0}
+  .slot{display:block;min-height:26px;border:1.5px dashed #C9C2B3;border-radius:6px;padding:4px 8px;font-size:12px;font-weight:600;color:var(--navy);background:#fff;outline:none;white-space:normal;line-height:1.3;cursor:text}
+  .slot:empty::before{content:attr(data-ph);color:#B8B2A4;font-weight:500}
+  .slot:focus{border-color:var(--orange);border-style:solid;background:var(--wash)}
+  .slot.filled{border-style:solid;border-color:var(--navy)}
+  .trkey{margin-top:12px;display:flex;gap:22px;font-size:11.5px;color:var(--slate)}
+  .trkey b{color:var(--navy)}
+
+  .actgrid{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-top:6px}
+  .actcard{border:1px solid var(--line);border-radius:10px;padding:20px 24px;display:flex;gap:18px;background:var(--card)}
+  .actnum{font-size:24px;font-weight:800;color:var(--orange-deep);min-width:34px}
+  .acttitle{font-size:16px;font-weight:750;color:var(--navy);margin-bottom:4px}
+  .actbody{font-size:13.5px;color:var(--slate);line-height:1.45}
+  .actbody b{color:var(--navy)}
+</style>
+</head>
+<body>
+<div id="rail"></div>
+<div id="stage"><div id="frame"></div></div>
+
+<template id="slides">
+
+<!-- 1 · TITLE -->
+<section class="slide dark">
+  <div class="brandrow"><img src="data:image/png;base64,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" alt="ResQ" style="height:36px;display:block"><span class="brandsep"></span><span class="brandtag">RSG · Internal, Leadership Review</span></div>
+  <div style="margin-top:150px">
+    <div class="dash"></div>
+    <h1 class="big">RSG Events Plan</h1>
+    <p class="sub">Commercial services, powered by technology. Field plan, September 2026 to Q1 2027.</p>
+  </div>
+  <div class="footrow"><span>resqservicesgroup.com · the outcome owner for commercial repair and maintenance</span><span>September 2026</span></div>
+</section>
+
+<!-- 2 · THE BET -->
+<section class="slide">
+  <div class="kicker">The Bet</div>
+  <h1 class="head">Events exist to break the growth bottleneck</h1>
+  <div class="dash tight"></div>
+  <div class="goal">
+    <div class="goalnum">01</div>
+    <div><div class="goallabel">Primary</div><div class="goaltitle">Non-linear growth for RSG</div>
+    <div class="goalbody">$7.1M gross revenue run-rate, 422 facilities served in August, and 86%+ of facilities return after their second work order. Fulfillment is not the constraint; growth is. Every event is judged on facilities onboarded and multi-site accounts opened.</div></div>
+  </div>
+  <div class="goal">
+    <div class="goalnum">02</div>
+    <div><div class="goallabel">The Flip</div><div class="goaltitle">Show up as the service provider, not the software</div>
+    <div class="goalbody">FM conferences exist so facility leaders can find service providers. We used to be the software vendor in the corner; as RSG we are exactly what the room came to shop for. Booths sell outcomes: fastest response, white-glove reports, guarantees.</div></div>
+  </div>
+  <div class="goal">
+    <div class="goalnum">03</div>
+    <div><div class="goallabel">Focus</div><div class="goaltitle">Core markets first, national where multi-site HQs gather</div>
+    <div class="goalbody">NYC, Toronto, Miami, Texas, and the DMV are where we deliver today. Local events produce serviceable leads; national events count when the multi-site accounts in the room span our footprint.</div></div>
+  </div>
+</section>
+
+<!-- 3 · THE FILTER -->
+<section class="slide">
+  <div class="kicker">The Filter</div>
+  <h1 class="head">Five checks every event must pass</h1>
+  <div class="dash tight"></div>
+  <div class="filtergrid">
+    <div class="fcard"><div class="fnum">1</div><div><div class="ftitle">Service-buyer density</div><div class="fbody">The room buys commercial R&amp;M and PM services: FM leaders, ops, finance approvers. Software-evaluator rooms (CIO/CTO) no longer count.</div></div></div>
+    <div class="fcard"><div class="fnum">2</div><div><div class="ftitle">Multi-site leverage</div><div class="fbody">One conversation opens many facilities. Logos with 50 to 500 rooftops, not single locations.</div></div></div>
+    <div class="fcard"><div class="fnum">3</div><div><div class="ftitle">Footprint fit</div><div class="fbody">Leads must be serviceable: HQs or facilities in core markets, or national multi-site accounts that span them.</div></div></div>
+    <div class="fcard"><div class="fnum">4</div><div><div class="ftitle">Story fit</div><div class="fbody">"Fastest response, white-glove reports, guarantees, 86% repeat" lands as the pitch. Rooms that want feature demos fail.</div></div></div>
+    <div class="fcard"><div class="fnum">5</div><div><div class="ftitle">Entry-point coverage</div><div class="fbody">Feeds one of the three RSG entry points: upsell existing facilities, inbound and word of mouth, or sales-led enterprise.</div></div></div>
+    <div class="fcard" style="background:var(--wash)"><div class="fnum" style="color:#A6A99E">✕</div><div><div class="ftitle">Cut by the filter</div><div class="fbody">FSTEC and MURTEC: software-buyer rooms with no repair-services audience. Both out, permanently.</div></div></div>
+  </div>
+  <div class="rulebar"><b>Evidence baseline (2024 recap):</b> 30% of event spend, in mid-size rooms with dinners and pre-built 1:1s, produced 91% of closed-won at $750 CAC. Big-show splashes alone returned zero. The plan below buys buyers, not impressions.</div>
+</section>
+
+<!-- 4 · CALENDAR -->
+<section class="slide">
+  <div class="calhead">
+    <div><div class="kicker">The Calendar</div><h1 class="head">September 2026 to Q1 2027</h1></div>
+    <div class="legend"><span><span class="swatch"></span>Exhibit / sponsor</span><span><span class="swatch open"></span>Attend</span><span><span class="swatch dec"></span>To decide</span></div>
+  </div>
+  <div class="cal">
+    <div class="calcol"><div class="calmon">Sep</div><div class="calyr">2026</div>
+      <div class="evc"><div class="n">ConnexFM Mid-Year</div><div class="d">Sep 22–23 · Louisville</div></div>
+    </div>
+    <div class="calcol"><div class="calmon">Oct</div><div class="calyr">2026</div>
+      <div class="evc flag"><div class="tag">Sponsor</div><div class="n">RestaurantSpaces</div><div class="d">Oct 18–20 · Amelia Island</div></div>
+    </div>
+    <div class="calcol"><div class="calmon">Nov</div><div class="calyr">2026</div>
+      <div class="evc flag"><div class="tag">Sponsor</div><div class="n">R365 Transform</div><div class="d">Nov 1–3 · Scottsdale</div></div>
+      <div class="evc"><div class="n">RFDC + hosted dinner</div><div class="d">Nov 9–11 · Las Vegas</div></div>
+      <div class="evc flag"><div class="tag">Exhibit</div><div class="n">IFMA World Workplace</div><div class="d">Nov 18–20 · Anaheim</div></div>
+    </div>
+    <div class="calcol"><div class="calmon">Dec</div><div class="calyr">2026</div>
+      <div class="evc flag"><div class="tag">Exhibit</div><div class="n">Buildings Show / PM Expo</div><div class="d">Dec 2–4 · Toronto</div></div>
+    </div>
+    <div class="calcol"><div class="calmon">Jan</div><div class="calyr">2027</div>
+      <div class="evc ghost"><div class="n">Open, planning &amp; RFMA prep</div></div>
+    </div>
+    <div class="calcol"><div class="calmon">Feb</div><div class="calyr">2027</div>
+      <div class="evc opt"><div class="tag">Decide</div><div class="n">ASHE PDC Summit</div><div class="d">Feb 28–Mar 3 · New Orleans</div></div>
+    </div>
+    <div class="calcol"><div class="calmon">Mar</div><div class="calyr">2027</div>
+      <div class="evc flag"><div class="tag">Exhibit</div><div class="n">RFMA 2027</div><div class="d">March · dates TBD</div></div>
+      <div class="evc"><div class="n">NFMT East</div><div class="d">Mar 31–Apr 2 · Baltimore</div></div>
+      <div class="evc opt"><div class="tag">Decide</div><div class="n">NYC Restaurant Show</div><div class="d">March · NYC, dates TBC</div></div>
+      <div class="evc opt"><div class="tag">Decide</div><div class="n">AKFCF</div><div class="d">Spring · dates TBC</div></div>
+    </div>
+  </div>
+</section>
+
+<!-- 5 · CONNEX -->
+<section class="slide">
+  <div class="kicker">Keep · Multi-Site FM Buying Network</div>
+  <h1 class="head">ConnexFM Mid-Year</h1>
+  <div class="dash tight" style="margin-bottom:0"></div>
+  <div class="stats">
+    <div class="stat"><div class="l">Dates</div><div class="v">Sep 22–23, 2026</div><div class="s">3 weeks out, register now</div></div>
+    <div class="stat"><div class="l">Location</div><div class="v">Louisville, KY</div><div class="s">The Galt House</div></div>
+    <div class="stat"><div class="l">Audience</div><div class="v">Multi-site FMs</div><div class="s">retail + restaurant chains</div></div>
+    <div class="stat"><div class="l">All-In</div><div class="v money">$2,750</div><div class="s">$750 passes · $2K travel</div></div>
+  </div>
+  <div class="detgrid">
+    <div>
+      <div class="h6">Why it pushes RSG</div>
+      <p class="what">ConnexFM is the network where multi-site FMs source and manage service providers. Under the CMMS lens this was a scouting trip; under the RSG lens it is a room of people whose job is buying exactly what we sell. Mission: qualify the supplier membership and directory as a demand channel, and leave with a yes/no on National 2027.</p>
+      <div class="h6">What the cost includes</div>
+      <ul class="act">
+        <li>3 non-supplier passes at $250 each ($750)</li>
+        <li>Roundtables plus Quick Connect structured networking with FM buyers</li>
+        <li>Travel only, no booth or shipping: flights and one hotel night for 3 (~$2,000)</li>
+        <li>Not included: supplier membership ($1,100 to $3,300/yr) and sponsorships; price them on site for 2027</li>
+      </ul>
+    </div>
+    <div class="badgecard">
+      <div><div class="vert">Multi-Site FM</div><div class="big-ab">Connex</div></div>
+      <div class="facts"><b>Entry points:</b> sales-led + word of mouth<br><b>Footprint:</b> national HQs spanning core markets<br><b>Decision output:</b> National 2027 go/no-go</div>
+    </div>
+  </div>
+</section>
+
+<!-- 6 · RESTAURANTSPACES -->
+<section class="slide">
+  <div class="kicker">Keep · Restaurant Development + Facilities C-Level</div>
+  <h1 class="head">RestaurantSpaces Fall</h1>
+  <div class="dash tight" style="margin-bottom:0"></div>
+  <div class="stats">
+    <div class="stat"><div class="l">Dates</div><div class="v">Oct 18–20, 2026</div><div class="s">6 weeks out, decide this week</div></div>
+    <div class="stat"><div class="l">Location</div><div class="v">Amelia Island, FL</div></div>
+    <div class="stat"><div class="l">Audience</div><div class="v">~300–400 execs</div><div class="s">chain dev + facilities leaders</div></div>
+    <div class="stat"><div class="l">All-In</div><div class="v money">$39,500</div><div class="s">$36K sponsorship · $3.5K logistics</div></div>
+  </div>
+  <div class="detgrid">
+    <div>
+      <div class="h6">Why it pushes RSG</div>
+      <p class="what">New-opening pipelines are RSG's best PM-attach moment, and this hosted-buyer retreat concentrates the people who plan openings. The package guarantees operator 1:1s, which fixes what failed in 2024: we sponsored at $32K with zero closed-won and no meeting slate. This time we walk in with a booked calendar and the service story instead of software. Judge it on facilities onboarded.</p>
+      <div class="h6">What the cost includes</div>
+      <ul class="act">
+        <li>Hosted-buyer sponsorship at $36K (our numbers): badges for 2, hosted meals, dinner seat</li>
+        <li>Guaranteed operator 1:1 meetings included in the package</li>
+        <li>Pre-work owns the outcome: rank the attendee list, request targets early, prep the outcome pitch per brand</li>
+        <li>Logistics estimate: flights, hotel for 2 (~$3,500)</li>
+      </ul>
+    </div>
+    <div class="badgecard">
+      <div><div class="vert">Restaurant Dev</div><div class="big-ab">Spaces</div></div>
+      <div class="facts"><b>Entry point:</b> sales-led enterprise<br><b>History:</b> 2024 sponsorship had no 1:1 slate; this one does<br><b>Metric:</b> facilities onboarded, not scans</div>
+    </div>
+  </div>
+</section>
+
+<!-- 7 · R365 TRANSFORM -->
+<section class="slide">
+  <div class="kicker">Keep · Sponsor, Partner Ecosystem</div>
+  <h1 class="head">R365 Transform</h1>
+  <div class="dash tight" style="margin-bottom:0"></div>
+  <div class="stats">
+    <div class="stat"><div class="l">Dates</div><div class="v">Nov 1–3, 2026</div></div>
+    <div class="stat"><div class="l">Location</div><div class="v">Scottsdale, AZ</div></div>
+    <div class="stat"><div class="l">Audience</div><div class="v">R365 customers</div><div class="s">multi-unit ops + finance leaders</div></div>
+    <div class="stat"><div class="l">All-In</div><div class="v money">$12,000</div><div class="s">$8K sponsorship · $4K logistics</div></div>
+  </div>
+  <div class="detgrid">
+    <div>
+      <div class="h6">Why it pushes RSG</div>
+      <p class="what">The warmest room in the plan and the RSG brand debut. The talk track flips from integration to finance: your R&amp;M line item, managed for outcomes, with reactive spend credited toward PM plans. R365's customer base is operators whose repair history RSG can convert into managed relationships, entry point one at scale.</p>
+      <div class="h6">What the cost includes</div>
+      <ul class="act">
+        <li>Expanded sponsorship (est., custom quote pending): showcase / Solutions Bar placement</li>
+        <li>Event passes bundled with sponsorship; confirm count before buying extras</li>
+        <li>Pursue a co-present or joint demo slot with the R365 partner team</li>
+        <li>Logistics estimate: flights, hotel for 2 (~$4,000)</li>
+      </ul>
+    </div>
+    <div class="badgecard">
+      <div><div class="vert">Restaurant Ops</div><div class="big-ab">R365</div></div>
+      <div class="facts"><b>Entry points:</b> upsell existing + sales-led<br><b>Moment:</b> first outing of the RSG booth and story<br><b>Pitch:</b> outcome economics, not features</div>
+    </div>
+  </div>
+</section>
+
+<!-- 8 · RFDC -->
+<section class="slide">
+  <div class="kicker">Keep, Gated · Restaurant Finance C-Suite</div>
+  <h1 class="head">RFDC + hosted dinner</h1>
+  <div class="dash tight" style="margin-bottom:0"></div>
+  <div class="stats">
+    <div class="stat"><div class="l">Dates</div><div class="v">Nov 9–11, 2026</div></div>
+    <div class="stat"><div class="l">Location</div><div class="v">Las Vegas, NV</div><div class="s">Wynn</div></div>
+    <div class="stat"><div class="l">Audience</div><div class="v">~3,000 execs</div><div class="s">restaurant CEOs, CFOs, franchisees</div></div>
+    <div class="stat"><div class="l">All-In</div><div class="v money">$13,000</div><div class="s">$10K program · $3K travel</div></div>
+  </div>
+  <div class="detgrid">
+    <div>
+      <div class="h6">Why it pushes RSG, and the honest tension</div>
+      <p class="what">Straight talk: RSG's land motion is bottoms-up. FMs submit the first work order; CFOs never will. So this is not a lead-gen event, it is a mandate event. Facilities land one by one (linear); a CFO who standardizes on RSG across 100+ units is non-linear. The dinner exists to convert accounts our FM-level motion has already warmed into portfolio mandates, not to cold-pitch executives.</p>
+      <div class="h6">What the cost includes</div>
+      <ul class="act">
+        <li>2 conference passes (down from 3) plus hosted private dinner for 10 to 15 guests</li>
+        <li>Dinner list rule: CFO or COO paired with accounts where FM-level engagement is already live</li>
+        <li>Kill rule: 8 to 10 named warm accounts confirmed by Oct 1, or cut the event entirely</li>
+        <li>Travel estimate: flights, hotel for 2 (~$3,000)</li>
+      </ul>
+    </div>
+    <div class="badgecard">
+      <div><div class="vert">Restaurant Finance</div><div class="big-ab">RFDC</div></div>
+      <div class="facts"><b>Role:</b> mandate event, not lead gen<br><b>History:</b> 2023 dinner closed 4 facilities on $6.2K<br><b>Gate:</b> warm-account list by Oct 1 or cut</div>
+    </div>
+  </div>
+</section>
+
+<!-- 9 · IFMA WW -->
+<section class="slide">
+  <div class="kicker">Keep · Exhibit, General FM Expansion Bet</div>
+  <h1 class="head">IFMA World Workplace</h1>
+  <div class="dash tight" style="margin-bottom:0"></div>
+  <div class="stats">
+    <div class="stat"><div class="l">Dates</div><div class="v">Nov 18–20, 2026</div></div>
+    <div class="stat"><div class="l">Location</div><div class="v">Anaheim, CA</div><div class="s">Anaheim Convention Center</div></div>
+    <div class="stat"><div class="l">Audience</div><div class="v">4,000–5,000 FMs</div><div class="s">all verticals, IFMA flagship</div></div>
+    <div class="stat"><div class="l">All-In</div><div class="v money">$11,000</div><div class="s">$7K booth · $4K logistics</div></div>
+  </div>
+  <div class="detgrid">
+    <div>
+      <div class="h6">Why it pushes RSG</div>
+      <p class="what">The "clinics and stores" line of the memo made real: RSG's first booth in front of every vertical at once. FMs attend expressly to find providers. The room mixes single-campus and multi-site leaders, so qualify hard; success is qualified multi-site conversations in core markets, not badge scans.</p>
+      <div class="h6">What the cost includes</div>
+      <ul class="act">
+        <li>10x10 booth (est., quote via exhibitor prospectus)</li>
+        <li>2 full-event registrations plus 2 booth-staff badges included per 10x10 (verified in exhibitor FAQ)</li>
+        <li>Expo-only badges $149 for extra teammates</li>
+        <li>Logistics estimate: flights, hotel for 2 (~$4,000)</li>
+      </ul>
+    </div>
+    <div class="badgecard">
+      <div><div class="vert">General FM</div><div class="big-ab">IFMA</div></div>
+      <div class="facts"><b>Entry points:</b> sales-led + inbound<br><b>Role:</b> expansion-bet listening post<br><b>Metric:</b> which vertical pulls hardest</div>
+    </div>
+  </div>
+</section>
+
+<!-- 10 · PM EXPO -->
+<section class="slide">
+  <div class="kicker">Keep · Exhibit, Toronto Home Market</div>
+  <h1 class="head">The Buildings Show / PM Expo</h1>
+  <div class="dash tight" style="margin-bottom:0"></div>
+  <div class="stats">
+    <div class="stat"><div class="l">Dates</div><div class="v">Dec 2–4, 2026</div></div>
+    <div class="stat"><div class="l">Location</div><div class="v">Toronto, ON</div><div class="s">Metro Toronto Convention Centre</div></div>
+    <div class="stat"><div class="l">Audience</div><div class="v">Property &amp; facility managers</div><div class="s">building owners, RE pros</div></div>
+    <div class="stat"><div class="l">All-In</div><div class="v money">$6,500</div><div class="s">$5K booth · $1.5K logistics</div></div>
+  </div>
+  <div class="detgrid">
+    <div>
+      <div class="h6">Why it pushes RSG</div>
+      <p class="what">Upgraded from vertical test to core-market demand generation: a booth in RSG's home city where every lead is a serviceable work order, at the lowest cost per floor-hour in the plan. Also the right room to counter the Canada softness flagged in August (Soul Foods volume decline) with visible local presence.</p>
+      <div class="h6">What the cost includes</div>
+      <ul class="act">
+        <li>10x10 booth, ~100 sq ft (est.; historical rate ~CAD $34/sq ft, confirm current with TBS@informa.com)</li>
+        <li>Exhibitor listing in the show directory</li>
+        <li>No flights or hotels; full team can rotate through the floor</li>
+        <li>Logistics estimate: local transport, parking, shipping (~$1,500)</li>
+      </ul>
+    </div>
+    <div class="badgecard">
+      <div><div class="vert">Property · Buildings</div><div class="big-ab">PM Expo</div></div>
+      <div class="facts"><b>Entry points:</b> inbound + sales-led<br><b>Footprint:</b> core market; every lead serviceable<br><b>Edge:</b> cheapest exhibit in the plan</div>
+    </div>
+  </div>
+</section>
+
+<!-- 12 · PDC SUMMIT -->
+<section class="slide">
+  <div class="kicker">Decide · Healthcare Expansion Scout</div>
+  <h1 class="head">ASHE PDC Summit</h1>
+  <div class="dash tight" style="margin-bottom:0"></div>
+  <div class="stats">
+    <div class="stat"><div class="l">Dates</div><div class="v">Feb 28–Mar 3, 2027</div></div>
+    <div class="stat"><div class="l">Location</div><div class="v">New Orleans, LA</div><div class="s">outside core markets</div></div>
+    <div class="stat"><div class="l">Audience</div><div class="v">Health-system leaders</div><div class="s">facilities planning, design, construction</div></div>
+    <div class="stat"><div class="l">All-In</div><div class="v money">$6,000</div><div class="s">$2.5K reg · $3.5K logistics</div></div>
+  </div>
+  <div class="detgrid">
+    <div>
+      <div class="h6">Why it pushes RSG (conditionally)</div>
+      <p class="what">Healthcare is the "clinics" of the memo, and PDC is the follow-up to August's ASHE Innovation Conference. Go only if that trip surfaced live health-system prospects with facilities in core markets; otherwise healthcare waits for FY28 and this $6K goes elsewhere.</p>
+      <div class="h6">What the cost includes</div>
+      <ul class="act">
+        <li>2 attendee registrations (est.; ASHE prices via Cvent only)</li>
+        <li>No booth; sessions, expo floor, and pre-booked meetings</li>
+        <li>Logistics estimate: flights, hotel for 2 (~$3,500)</li>
+      </ul>
+    </div>
+    <div class="badgecard">
+      <div><div class="vert">Healthcare</div><div class="big-ab">PDC</div></div>
+      <div class="facts"><b>Entry point:</b> sales-led enterprise<br><b>Gate:</b> core-market healthcare prospects from Aug ASHE<br><b>Default:</b> pass unless the pipeline says go</div>
+    </div>
+  </div>
+</section>
+
+<!-- 13 · RFMA -->
+<section class="slide">
+  <div class="kicker">Keep · The Anchor, Restaurant Facilities</div>
+  <h1 class="head">RFMA 2027</h1>
+  <div class="dash tight" style="margin-bottom:0"></div>
+  <div class="stats">
+    <div class="stat"><div class="l">Dates</div><div class="v">March 2027</div><div class="s">TBD, save-the-date live</div></div>
+    <div class="stat"><div class="l">Location</div><div class="v">TBD</div><div class="s">2026 was Denver</div></div>
+    <div class="stat"><div class="l">Audience</div><div class="v">2,000+ FM pros</div><div class="s">restaurant facilities leaders</div></div>
+    <div class="stat"><div class="l">All-In</div><div class="v money">$18,000</div><div class="s">$13K booth · $5K logistics</div></div>
+  </div>
+  <div class="detgrid">
+    <div>
+      <div class="h6">Why it pushes RSG</div>
+      <p class="what">The purest restaurant FM room in existence; attendees dispatch repair work orders for a living, and the 86% repeat stat is the whole pitch. We are recurring attendees, and as RSG the booth now competes in the service-provider category these buyers came to shop. Build it around a live work-order story: request, confirmation, white-glove report.</p>
+      <div class="h6">What the cost includes</div>
+      <ul class="act">
+        <li>Booth package at $13,000 (our 2026 rate), including vendor membership</li>
+        <li>2 booth registrations plus Express Exchange speed meetings with FM buyers</li>
+        <li>3 people on site: booth rotation, pre-booked meetings, customer dinners</li>
+        <li>Logistics estimate: flights, hotel, shipping for 3 (~$5,000)</li>
+      </ul>
+    </div>
+    <div class="badgecard">
+      <div><div class="vert">Restaurant FM</div><div class="big-ab">RFMA</div></div>
+      <div class="facts"><b>Entry points:</b> all three, incl. existing facilities on the floor<br><b>Status:</b> dates unannounced, book on release<br><b>Booth:</b> live work-order demo, not screens</div>
+    </div>
+  </div>
+</section>
+
+<!-- 14 · NYC RESTAURANT SHOW -->
+<section class="slide">
+  <div class="kicker">Decide · Core-Market Regional</div>
+  <h1 class="head">NYC Restaurant Show</h1>
+  <div class="dash tight" style="margin-bottom:0"></div>
+  <div class="stats">
+    <div class="stat"><div class="l">Dates</div><div class="v">March 2027</div><div class="s">dates TBC</div></div>
+    <div class="stat"><div class="l">Location</div><div class="v">New York, NY</div><div class="s">Javits Center</div></div>
+    <div class="stat"><div class="l">Audience</div><div class="v">Operators + independents</div><div class="s">NYC metro restaurant trade</div></div>
+    <div class="stat"><div class="l">All-In</div><div class="v money">$6,500</div><div class="s">$5K booth est. · $1.5K logistics</div></div>
+  </div>
+  <div class="detgrid">
+    <div>
+      <div class="h6">Why it pushes RSG (conditionally)</div>
+      <p class="what">Under footprint-weighting this gets a second look: every lead is a serviceable NYC facility, and the show reaches independents and small groups that national events never touch, feeding the inbound entry point. Honest caveat: 2024 data says small events underperformed, though that finding came from brand-specific events, not regional trade shows. Judge on facilities onboarded, not scans.</p>
+      <div class="h6">What the cost includes</div>
+      <ul class="act">
+        <li>10x10 booth (est. ~$5K per the 2025 sheet; quote needed, dates TBC)</li>
+        <li>Exhibitor listing</li>
+        <li>NY-based team staffs it; no flights or hotels</li>
+        <li>Logistics estimate: local transport, shipping (~$1,500)</li>
+      </ul>
+    </div>
+    <div class="badgecard">
+      <div><div class="vert">NYC Core Market</div><div class="big-ab">NYC</div></div>
+      <div class="facts"><b>Entry point:</b> inbound / word of mouth<br><b>Footprint:</b> 100% serviceable leads<br><b>Cap:</b> one regional experiment, ~$5K</div>
+    </div>
+  </div>
+</section>
+
+<!-- 15 · NFMT EAST -->
+<section class="slide">
+  <div class="kicker">Keep · DMV Core Market, General FM</div>
+  <h1 class="head">NFMT East</h1>
+  <div class="dash tight" style="margin-bottom:0"></div>
+  <div class="stats">
+    <div class="stat"><div class="l">Dates</div><div class="v">Mar 31–Apr 2, 2027</div></div>
+    <div class="stat"><div class="l">Location</div><div class="v">Baltimore, MD</div><div class="s">DMV core market</div></div>
+    <div class="stat"><div class="l">Audience</div><div class="v">4,000–5,000 FMs</div><div class="s">corporate, healthcare, education, gov</div></div>
+    <div class="stat"><div class="l">All-In</div><div class="v money">$3,000</div><div class="s">$0 registration · $3K logistics</div></div>
+  </div>
+  <div class="detgrid">
+    <div>
+      <div class="h6">Why it pushes RSG</div>
+      <p class="what">Free registration plus a regional draw inside the DMV footprint makes this the cheapest serviceable-lead pool in the plan. Attend, work pre-booked meetings, and collect a booth quote on site: FY28 NFMT is a candidate core-market exhibit.</p>
+      <div class="h6">What the cost includes</div>
+      <ul class="act">
+        <li>Free attendee registration (Pro upgrade $79 if needed)</li>
+        <li>2 to 3 attendees across 90+ sessions and 400+ exhibitors</li>
+        <li>Full competitive sweep of the service-provider floor</li>
+        <li>Logistics estimate: travel, hotel for 2-3 (~$3,000)</li>
+      </ul>
+    </div>
+    <div class="badgecard">
+      <div><div class="vert">General FM</div><div class="big-ab">NFMT</div></div>
+      <div class="facts"><b>Entry points:</b> inbound + sales-led<br><b>Footprint:</b> DMV regional draw<br><b>Output:</b> FY28 booth quote</div>
+    </div>
+  </div>
+</section>
+
+<!-- 16 · AKFCF -->
+<section class="slide">
+  <div class="kicker">Decide · Franchise System, Proven Performer</div>
+  <h1 class="head">AKFCF 2027</h1>
+  <div class="dash tight" style="margin-bottom:0"></div>
+  <div class="stats">
+    <div class="stat"><div class="l">Dates</div><div class="v">Spring 2027</div><div class="s">dates/venue TBC</div></div>
+    <div class="stat"><div class="l">Location</div><div class="v">TBC</div></div>
+    <div class="stat"><div class="l">Audience</div><div class="v">KFC franchisees</div><div class="s">owners who buy services directly</div></div>
+    <div class="stat"><div class="l">All-In</div><div class="v money">$16,000</div><div class="s">$12K booth est. · $4K logistics</div></div>
+  </div>
+  <div class="detgrid">
+    <div>
+      <div class="h6">Why it pushes RSG (conditionally)</div>
+      <p class="what">Franchisee conventions where attendees personally own facilities are the brand-specific format that worked (2024 top-8 performer). With Dave's Con cut on cost, this is the one franchise-system channel left in the plan, at a price the 2024 data actually supports.</p>
+      <div class="h6">What the cost includes</div>
+      <ul class="act">
+        <li>Vendor-floor booth (est. per 2024/25 pricing, $11K to $15K range; quote needed)</li>
+        <li>Access to franchisee sessions and networking events per vendor package</li>
+        <li>Logistics estimate: flights, hotel for 2 (~$4,000)</li>
+        <li>Verify 2027 dates and whether the vendor floor still performs like 2024</li>
+      </ul>
+    </div>
+    <div class="badgecard">
+      <div><div class="vert">Franchise System</div><div class="big-ab">AKFCF</div></div>
+      <div class="facts"><b>Entry point:</b> sales-led + word of mouth<br><b>History:</b> 2024 top-8 performer<br><b>Role:</b> the franchise-system play in the plan</div>
+    </div>
+  </div>
+</section>
+
+<!-- 17 · CREATE -->
+<section class="slide">
+  <div class="kicker">FY28 · Multi-Unit Executives</div>
+  <h1 class="head">CREATE 2027</h1>
+  <div class="dash tight" style="margin-bottom:0"></div>
+  <div class="stats">
+    <div class="stat"><div class="l">Dates</div><div class="v">~July 2027</div><div class="s">2026 edition already passed</div></div>
+    <div class="stat"><div class="l">Location</div><div class="v">TBC</div></div>
+    <div class="stat"><div class="l">Audience</div><div class="v">Growth-brand execs</div><div class="s">multi-unit leadership</div></div>
+    <div class="stat"><div class="l">All-In</div><div class="v money">$24,000</div><div class="s">$20K package · $4K logistics</div></div>
+  </div>
+  <div class="detgrid">
+    <div>
+      <div class="h6">Why it pushes RSG</div>
+      <p class="what">Operator executives set the R&amp;M strategy their FMs execute, and this room is stacked: the 2025 attendee list included Dave's, CAVA, Domino's, Dutch Bros, and First Watch leadership. A 2024 top-8 performer. Shown here for planning; funds belong to the next budget cycle.</p>
+      <div class="h6">What the cost includes</div>
+      <ul class="act">
+        <li>Attendance package with 10 pre-built operator 1:1 meetings (the tactic rated best at the 2025 show)</li>
+        <li>Skip the VIP dinner add-on; attendance was thin in 2025</li>
+        <li>Logistics estimate: flights, hotel for 2 (~$4,000)</li>
+        <li>Action now: pre-commit early for meeting-list priority</li>
+      </ul>
+    </div>
+    <div class="badgecard">
+      <div><div class="vert">Multi-Unit Execs</div><div class="big-ab">CREATE</div></div>
+      <div class="facts"><b>Entry point:</b> sales-led enterprise<br><b>History:</b> 2024 top-8; stacked 2025 list<br><b>Timing:</b> FY28 budget, commit early</div>
+    </div>
+  </div>
+</section>
+
+<!-- 18 · BUDGET BUILDER -->
+<section class="slide" style="padding:48px 80px 40px">
+  <div class="kicker">The Numbers · Interactive</div>
+  <h1 class="head" style="font-size:30px">Budget builder: check Attend, uncheck to Pass</h1>
+  <p style="font-size:12.5px;color:#93A2AB;margin-top:6px">Inclusions are on each event page. Logistics are ballpark travel and shipping. RSG booth production ($10K) is always included.</p>
+  <table class="bd">
+    <tr><th style="width:96px">Attend</th><th>Event</th><th>Dates</th><th class="r">Sponsorship</th><th class="r" style="padding-left:14px">Logistics</th><th class="r" style="padding-left:14px">Line total</th></tr>
+    <tr class="brow" data-sponsor="750" data-logi="2000"><td class="chk"><input type="checkbox" checked><span class="lbl">Attend</span></td><td class="n">ConnexFM Mid-Year<span class="pill keep">Keep</span></td><td>Sep 22–23</td><td class="c r">$750</td><td class="c r">$2,000</td><td class="c r lt">$2,750</td></tr>
+    <tr class="brow" data-sponsor="36000" data-logi="3500"><td class="chk"><input type="checkbox" checked><span class="lbl">Attend</span></td><td class="n">RestaurantSpaces<span class="pill keep">Keep</span></td><td>Oct 18–20</td><td class="c r">$36,000</td><td class="c r">$3,500</td><td class="c r lt">$39,500</td></tr>
+    <tr class="brow" data-sponsor="8000" data-logi="4000"><td class="chk"><input type="checkbox" checked><span class="lbl">Attend</span></td><td class="n">R365 Transform<span class="pill keep">Keep</span></td><td>Nov 1–3</td><td class="c r">$8,000</td><td class="c r">$4,000</td><td class="c r lt">$12,000</td></tr>
+    <tr class="brow" data-sponsor="10000" data-logi="3000"><td class="chk"><input type="checkbox" checked><span class="lbl">Attend</span></td><td class="n">RFDC + dinner<span class="pill keep">Keep</span></td><td>Nov 9–11</td><td class="c r">$10,000</td><td class="c r">$3,000</td><td class="c r lt">$13,000</td></tr>
+    <tr class="brow" data-sponsor="7000" data-logi="4000"><td class="chk"><input type="checkbox" checked><span class="lbl">Attend</span></td><td class="n">IFMA World Workplace<span class="pill keep">Keep</span></td><td>Nov 18–20</td><td class="c r">$7,000</td><td class="c r">$4,000</td><td class="c r lt">$11,000</td></tr>
+    <tr class="brow" data-sponsor="5000" data-logi="1500"><td class="chk"><input type="checkbox" checked><span class="lbl">Attend</span></td><td class="n">PM Expo / Buildings Show<span class="pill keep">Keep</span></td><td>Dec 2–4</td><td class="c r">$5,000</td><td class="c r">$1,500</td><td class="c r lt">$6,500</td></tr>
+    <tr class="brow" data-sponsor="2500" data-logi="3500"><td class="chk"><input type="checkbox"><span class="lbl">Pass</span></td><td class="n">ASHE PDC Summit<span class="pill dec">Decide</span></td><td>Feb 28–Mar 3</td><td class="c r">$2,500</td><td class="c r">$3,500</td><td class="c r lt">$6,000</td></tr>
+    <tr class="brow" data-sponsor="13000" data-logi="5000"><td class="chk"><input type="checkbox" checked><span class="lbl">Attend</span></td><td class="n">RFMA 2027<span class="pill keep">Keep</span></td><td>March TBD</td><td class="c r">$13,000</td><td class="c r">$5,000</td><td class="c r lt">$18,000</td></tr>
+    <tr class="brow" data-sponsor="5000" data-logi="1500"><td class="chk"><input type="checkbox"><span class="lbl">Pass</span></td><td class="n">NYC Restaurant Show<span class="pill dec">Decide</span></td><td>March TBC</td><td class="c r">$5,000</td><td class="c r">$1,500</td><td class="c r lt">$6,500</td></tr>
+    <tr class="brow" data-sponsor="0" data-logi="3000"><td class="chk"><input type="checkbox" checked><span class="lbl">Attend</span></td><td class="n">NFMT East<span class="pill keep">Keep</span></td><td>Mar 31–Apr 2</td><td class="c r">$0</td><td class="c r">$3,000</td><td class="c r lt">$3,000</td></tr>
+    <tr class="brow" data-sponsor="12000" data-logi="4000"><td class="chk"><input type="checkbox"><span class="lbl">Pass</span></td><td class="n">AKFCF 2027<span class="pill dec">Decide</span></td><td>Spring TBC</td><td class="c r">$12,000</td><td class="c r">$4,000</td><td class="c r lt">$16,000</td></tr>
+    <tr class="brow" data-sponsor="20000" data-logi="4000"><td class="chk"><input type="checkbox"><span class="lbl">Pass</span></td><td class="n">CREATE 2027<span class="pill fy">FY28</span></td><td>~July 2027</td><td class="c r">$20,000</td><td class="c r">$4,000</td><td class="c r lt">$24,000</td></tr>
+    <tr class="prod"><td></td><td class="n">RSG booth production</td><td>Built once, reused</td><td class="c r">$10,000</td><td class="c r"></td><td class="c r">$10,000</td></tr>
+  </table>
+  <div class="totbar">
+    <div class="totcard"><div class="l">Events on</div><div class="v" id="t-n">0</div></div>
+    <div class="totcard"><div class="l">Sponsorship</div><div class="v" id="t-sp">$0</div></div>
+    <div class="totcard"><div class="l">Logistics</div><div class="v" id="t-lg">$0</div></div>
+    <div class="totcard"><div class="l">Production</div><div class="v">$10,000</div></div>
+    <div class="totcard grand"><div class="l">Total budget</div><div class="v" id="t-gr">$0</div></div>
+  </div>
+</section>
+
+<!-- 18 · TRAVEL ROSTER -->
+<section class="slide" style="padding:44px 80px 36px">
+  <div class="kicker">Who Goes · Fill In Live</div>
+  <h1 class="head" style="font-size:30px">Travel roster: click a cell, type a name</h1>
+  <p style="font-size:12.5px;color:#93A2AB;margin-top:6px">Travel dates assume arrive the day before, fly home the last day. Seats are the headcount budgeted on each event page.</p>
+  <table class="tr">
+    <colgroup><col style="width:200px"><col style="width:100px"><col style="width:128px"><col style="width:60px"><col><col><col></colgroup>
+    <tr><th>Event</th><th>Event dates</th><th>Travel</th><th class="seat">Seats</th><th>Sales</th><th>Marketing</th><th>Additional support</th></tr>
+    <tr><td class="n">ConnexFM Mid-Year<div style="font-size:10.5px;color:#93A2AB;font-weight:500;line-height:1.2">Louisville, KY</div></td><td>Sep 22–23</td><td class="tv">Sep 21 → 23</td><td class="seat">3</td><td class="who"><span class="slot" contenteditable="true" spellcheck="false" data-ph="Add name"></span></td><td class="who"><span class="slot" contenteditable="true" spellcheck="false" data-ph="Add name"></span></td><td class="who"><span class="slot" contenteditable="true" spellcheck="false" data-ph="Add name"></span></td></tr>
+    <tr><td class="n">RestaurantSpaces Fall<div style="font-size:10.5px;color:#93A2AB;font-weight:500;line-height:1.2">Amelia Island, FL</div></td><td>Oct 18–20</td><td class="tv">Oct 17 → 20</td><td class="seat">2</td><td class="who"><span class="slot" contenteditable="true" spellcheck="false" data-ph="Add name"></span></td><td class="who"><span class="slot" contenteditable="true" spellcheck="false" data-ph="Add name"></span></td><td class="who"><span class="slot" contenteditable="true" spellcheck="false" data-ph="Add name"></span></td></tr>
+    <tr><td class="n">R365 Transform<div style="font-size:10.5px;color:#93A2AB;font-weight:500;line-height:1.2">Scottsdale, AZ</div></td><td>Nov 1–3</td><td class="tv">Oct 31 → Nov 3</td><td class="seat">2</td><td class="who"><span class="slot" contenteditable="true" spellcheck="false" data-ph="Add name"></span></td><td class="who"><span class="slot" contenteditable="true" spellcheck="false" data-ph="Add name"></span></td><td class="who"><span class="slot" contenteditable="true" spellcheck="false" data-ph="Add name"></span></td></tr>
+    <tr><td class="n">RFDC + hosted dinner<div style="font-size:10.5px;color:#93A2AB;font-weight:500;line-height:1.2">Las Vegas, NV</div></td><td>Nov 9–11</td><td class="tv">Nov 8 → 11</td><td class="seat">2</td><td class="who"><span class="slot" contenteditable="true" spellcheck="false" data-ph="Add name"></span></td><td class="who"><span class="slot" contenteditable="true" spellcheck="false" data-ph="Add name"></span></td><td class="who"><span class="slot" contenteditable="true" spellcheck="false" data-ph="Add name"></span></td></tr>
+    <tr><td class="n">IFMA World Workplace<div style="font-size:10.5px;color:#93A2AB;font-weight:500;line-height:1.2">Anaheim, CA</div></td><td>Nov 18–20</td><td class="tv">Nov 17 → 20</td><td class="seat">2–4</td><td class="who"><span class="slot" contenteditable="true" spellcheck="false" data-ph="Add name"></span></td><td class="who"><span class="slot" contenteditable="true" spellcheck="false" data-ph="Add name"></span></td><td class="who"><span class="slot" contenteditable="true" spellcheck="false" data-ph="Add name"></span></td></tr>
+    <tr><td class="n">PM Expo / Buildings Show<div style="font-size:10.5px;color:#93A2AB;font-weight:500;line-height:1.2">Toronto, ON</div></td><td>Dec 2–4</td><td class="tv">Local · Dec 2 → 4</td><td class="seat">Rotate</td><td class="who"><span class="slot" contenteditable="true" spellcheck="false" data-ph="Add name"></span></td><td class="who"><span class="slot" contenteditable="true" spellcheck="false" data-ph="Add name"></span></td><td class="who"><span class="slot" contenteditable="true" spellcheck="false" data-ph="Add name"></span></td></tr>
+    <tr><td class="n">ASHE PDC Summit<div style="font-size:10.5px;color:#93A2AB;font-weight:500;line-height:1.2">New Orleans, LA</div></td><td>Feb 28–Mar 3</td><td class="tv">Feb 27 → Mar 3</td><td class="seat">2</td><td class="who"><span class="slot" contenteditable="true" spellcheck="false" data-ph="Add name"></span></td><td class="who"><span class="slot" contenteditable="true" spellcheck="false" data-ph="Add name"></span></td><td class="who"><span class="slot" contenteditable="true" spellcheck="false" data-ph="Add name"></span></td></tr>
+    <tr><td class="n">RFMA 2027<div style="font-size:10.5px;color:#93A2AB;font-weight:500;line-height:1.2">TBD</div></td><td>March TBD</td><td class="tv">TBD</td><td class="seat">3</td><td class="who"><span class="slot" contenteditable="true" spellcheck="false" data-ph="Add name"></span></td><td class="who"><span class="slot" contenteditable="true" spellcheck="false" data-ph="Add name"></span></td><td class="who"><span class="slot" contenteditable="true" spellcheck="false" data-ph="Add name"></span></td></tr>
+    <tr><td class="n">NYC Restaurant Show<div style="font-size:10.5px;color:#93A2AB;font-weight:500;line-height:1.2">New York, NY</div></td><td>March TBC</td><td class="tv">Local · TBC</td><td class="seat">NY team</td><td class="who"><span class="slot" contenteditable="true" spellcheck="false" data-ph="Add name"></span></td><td class="who"><span class="slot" contenteditable="true" spellcheck="false" data-ph="Add name"></span></td><td class="who"><span class="slot" contenteditable="true" spellcheck="false" data-ph="Add name"></span></td></tr>
+    <tr><td class="n">NFMT East<div style="font-size:10.5px;color:#93A2AB;font-weight:500;line-height:1.2">Baltimore, MD</div></td><td>Mar 31–Apr 2</td><td class="tv">Mar 30 → Apr 2</td><td class="seat">2–3</td><td class="who"><span class="slot" contenteditable="true" spellcheck="false" data-ph="Add name"></span></td><td class="who"><span class="slot" contenteditable="true" spellcheck="false" data-ph="Add name"></span></td><td class="who"><span class="slot" contenteditable="true" spellcheck="false" data-ph="Add name"></span></td></tr>
+    <tr><td class="n">AKFCF 2027<div style="font-size:10.5px;color:#93A2AB;font-weight:500;line-height:1.2">TBC</div></td><td>Spring TBC</td><td class="tv">TBC</td><td class="seat">2</td><td class="who"><span class="slot" contenteditable="true" spellcheck="false" data-ph="Add name"></span></td><td class="who"><span class="slot" contenteditable="true" spellcheck="false" data-ph="Add name"></span></td><td class="who"><span class="slot" contenteditable="true" spellcheck="false" data-ph="Add name"></span></td></tr>
+    <tr><td class="n">CREATE 2027<div style="font-size:10.5px;color:#93A2AB;font-weight:500;line-height:1.2">TBC</div></td><td>~July 2027</td><td class="tv">FY28 · TBC</td><td class="seat">2</td><td class="who"><span class="slot" contenteditable="true" spellcheck="false" data-ph="Add name"></span></td><td class="who"><span class="slot" contenteditable="true" spellcheck="false" data-ph="Add name"></span></td><td class="who"><span class="slot" contenteditable="true" spellcheck="false" data-ph="Add name"></span></td></tr>
+    
+  </table>
+  <div class="trkey"><span><b>Sales</b> owns the meeting slate</span><span><b>Marketing</b> owns booth, dinner, and follow-up</span><span><b>Additional support</b>: ops, CS, exec, or partner team</span></div>
+</section>
+
+<!-- 19 · NEXT STEPS -->
+<section class="slide">
+  <div class="kicker">This Week</div>
+  <h1 class="head">Deadline-driven next steps</h1>
+  <div class="dash tight"></div>
+  <div class="actgrid">
+    <div class="actcard"><div class="actnum">01</div><div><div class="acttitle">Register Connex passes</div><div class="actbody"><b>Now.</b> 3 non-supplier passes at $250; the event is three weeks out. Mission: qualify supplier membership and the National 2027 investment.</div></div></div>
+    <div class="actcard"><div class="actnum">02</div><div><div class="acttitle">Lock RestaurantSpaces 1:1 slate</div><div class="actbody"><b>This week (6 weeks out).</b> Contract at $36K with guaranteed 1:1s; rank the operator list and request targets before slots fill.</div></div></div>
+    <div class="actcard"><div class="actnum">03</div><div><div class="acttitle">Build the RFDC dinner list</div><div class="actbody"><b>By Oct 1.</b> 8 to 10 named multi-site accounts with warm FM-level engagement already underway. If the list cannot be filled, cut RFDC and bank the $13K.</div></div></div>
+    <div class="actcard"><div class="actnum">04</div><div><div class="acttitle">Start the RSG booth</div><div class="actbody"><b>Fran, $10K production.</b> Debuts at R365 Transform (Nov 1), reused at IFMA WW, PM Expo, and RFMA. Built around a live work-order story, not product screens.</div></div></div>
+    <div class="actcard"><div class="actnum">05</div><div><div class="acttitle">Book RFDC + dinner</div><div class="actbody"><b>Now.</b> Passes for 3 and the private dinner guest list of target CFOs. The outcome-economics pitch is finance language.</div></div></div>
+    <div class="actcard"><div class="actnum">06</div><div><div class="acttitle">Confirm pending quotes</div><div class="actbody"><b>Rolling.</b> IFMA booth, R365 package, PM Expo current rate, PDC registration, AKFCF and NYC Show dates. Sponsorship figures marked est. until quoted.</div></div></div>
+  </div>
+</section>
+
+</template>
+
+<script>
+(function(){
+  const tpl=document.getElementById('slides');
+  const frame=document.getElementById('frame');
+  const rail=document.getElementById('rail');
+  const slides=[...tpl.content.querySelectorAll('.slide')];
+  slides.forEach((s,i)=>{
+    const main=s.cloneNode(true); main.dataset.i=i; frame.appendChild(main);
+    const w=document.createElement('div'); w.className='thumbwrap';
+    w.innerHTML='<div class="thumbnum">'+(i+1)+'</div>';
+    const t=document.createElement('div'); t.className='thumb';
+    const mini=s.cloneNode(true); mini.classList.add('mini','on'); mini.style.display='flex';
+    t.appendChild(mini); w.appendChild(t); rail.appendChild(w);
+    w.addEventListener('click',()=>go(i));
+  });
+  const mains=[...frame.querySelectorAll(':scope > .slide')];
+  const thumbs=[...rail.querySelectorAll('.thumbwrap')];
+  let cur=-1;
+  function go(i){
+    i=Math.max(0,Math.min(slides.length-1,i));
+    if(i===cur)return; cur=i;
+    mains.forEach((m,j)=>m.classList.toggle('on',j===i));
+    thumbs.forEach((t,j)=>t.classList.toggle('active',j===i));
+    location.hash='#'+(i+1);
+    thumbs[i].scrollIntoView({block:'nearest'});
+  }
+  function fit(){
+    const st=document.getElementById('stage');
+    const s=Math.min(st.clientWidth/1280,st.clientHeight/720);
+    frame.style.transform='scale('+s+')';
+  }
+  window.addEventListener('resize',fit);
+  document.addEventListener('keydown',e=>{
+    if(e.target.tagName==='INPUT'||e.target.isContentEditable)return;
+    if(e.key==='ArrowRight'||e.key==='ArrowDown'||e.key===' ')go(cur+1);
+    if(e.key==='ArrowLeft'||e.key==='ArrowUp')go(cur-1);
+  });
+
+  const PRODUCTION=10000;
+  function money(n){return '$'+n.toLocaleString('en-US')}
+  function calc(){
+    let sp=0,lg=0,n=0;
+    frame.querySelectorAll('tr.brow').forEach(r=>{
+      const on=r.querySelector('input').checked;
+      r.classList.toggle('off',!on);
+      r.querySelector('.lbl').textContent=on?'Attend':'Pass';
+      if(on){sp+=+r.dataset.sponsor;lg+=+r.dataset.logi;n++}
+    });
+    frame.querySelector('#t-n').textContent=n;
+    frame.querySelector('#t-sp').textContent=money(sp);
+    frame.querySelector('#t-lg').textContent=money(lg);
+    frame.querySelector('#t-gr').textContent=money(sp+lg+PRODUCTION);
+  }
+  frame.querySelectorAll('tr.brow input').forEach(cb=>cb.addEventListener('change',calc));
+  calc();
+
+  frame.querySelectorAll('.slot').forEach(el=>el.addEventListener('input',()=>el.classList.toggle('filled',el.textContent.trim().length>0)));
+
+  fit();
+  go((parseInt(location.hash.slice(1))||1)-1);
+})();
+</script>
+</body>
+</html>
