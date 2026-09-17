@@ -123,6 +123,22 @@
   .totcard.grand .l{color:var(--fog)}
   .totcard.grand .v{color:#fff;font-size:24px}
 
+  /* travel roster */
+  table.tr{width:100%;border-collapse:collapse;margin-top:14px;table-layout:fixed}
+  table.tr th{font-size:10.5px;font-weight:700;letter-spacing:.11em;text-transform:uppercase;color:#93A2AB;text-align:left;padding:0 8px 8px 0;border-bottom:2px solid var(--navy)}
+  table.tr td{padding:5px 8px 5px 0;border-bottom:1px solid #EAE4D8;font-size:12.5px;color:var(--slate);vertical-align:middle;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  table.tr td.n{font-weight:750;color:var(--navy);font-size:13px}
+  table.tr td.tv{font-weight:700;color:var(--navy)}
+  table.tr td.seat{font-weight:800;color:var(--orange-deep);text-align:center}
+  table.tr th.seat{text-align:center}
+  table.tr td.who{padding:3px 6px 3px 0}
+  .slot{display:block;min-height:26px;border:1.5px dashed #C9C2B3;border-radius:6px;padding:4px 8px;font-size:12px;font-weight:600;color:var(--navy);background:#fff;outline:none;white-space:normal;line-height:1.3;cursor:text}
+  .slot:empty::before{content:attr(data-ph);color:#B8B2A4;font-weight:500}
+  .slot:focus{border-color:var(--orange);border-style:solid;background:var(--wash)}
+  .slot.filled{border-style:solid;border-color:var(--navy)}
+  .trkey{margin-top:12px;display:flex;gap:22px;font-size:11.5px;color:var(--slate)}
+  .trkey b{color:var(--navy)}
+
   .actgrid{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-top:6px}
   .actcard{border:1px solid var(--line);border-radius:10px;padding:20px 24px;display:flex;gap:18px;background:var(--card)}
   .actnum{font-size:24px;font-weight:800;color:var(--orange-deep);min-width:34px}
@@ -611,6 +627,31 @@
   </div>
 </section>
 
+<!-- 18 · TRAVEL ROSTER -->
+<section class="slide" style="padding:44px 80px 36px">
+  <div class="kicker">Who Goes · Fill In Live</div>
+  <h1 class="head" style="font-size:30px">Travel roster: click a cell, type a name</h1>
+  <p style="font-size:12.5px;color:#93A2AB;margin-top:6px">Travel dates assume arrive the day before, fly home the last day. Seats are the headcount budgeted on each event page.</p>
+  <table class="tr">
+    <colgroup><col style="width:200px"><col style="width:100px"><col style="width:128px"><col style="width:60px"><col><col><col></colgroup>
+    <tr><th>Event</th><th>Event dates</th><th>Travel</th><th class="seat">Seats</th><th>Sales</th><th>Marketing</th><th>Additional support</th></tr>
+    <tr><td class="n">ConnexFM Mid-Year<div style="font-size:10.5px;color:#93A2AB;font-weight:500;line-height:1.2">Louisville, KY</div></td><td>Sep 22–23</td><td class="tv">Sep 21 → 23</td><td class="seat">3</td><td class="who"><span class="slot" contenteditable="true" spellcheck="false" data-ph="Add name"></span></td><td class="who"><span class="slot" contenteditable="true" spellcheck="false" data-ph="Add name"></span></td><td class="who"><span class="slot" contenteditable="true" spellcheck="false" data-ph="Add name"></span></td></tr>
+    <tr><td class="n">RestaurantSpaces Fall<div style="font-size:10.5px;color:#93A2AB;font-weight:500;line-height:1.2">Amelia Island, FL</div></td><td>Oct 18–20</td><td class="tv">Oct 17 → 20</td><td class="seat">2</td><td class="who"><span class="slot" contenteditable="true" spellcheck="false" data-ph="Add name"></span></td><td class="who"><span class="slot" contenteditable="true" spellcheck="false" data-ph="Add name"></span></td><td class="who"><span class="slot" contenteditable="true" spellcheck="false" data-ph="Add name"></span></td></tr>
+    <tr><td class="n">R365 Transform<div style="font-size:10.5px;color:#93A2AB;font-weight:500;line-height:1.2">Scottsdale, AZ</div></td><td>Nov 1–3</td><td class="tv">Oct 31 → Nov 3</td><td class="seat">2</td><td class="who"><span class="slot" contenteditable="true" spellcheck="false" data-ph="Add name"></span></td><td class="who"><span class="slot" contenteditable="true" spellcheck="false" data-ph="Add name"></span></td><td class="who"><span class="slot" contenteditable="true" spellcheck="false" data-ph="Add name"></span></td></tr>
+    <tr><td class="n">RFDC + hosted dinner<div style="font-size:10.5px;color:#93A2AB;font-weight:500;line-height:1.2">Las Vegas, NV</div></td><td>Nov 9–11</td><td class="tv">Nov 8 → 11</td><td class="seat">2</td><td class="who"><span class="slot" contenteditable="true" spellcheck="false" data-ph="Add name"></span></td><td class="who"><span class="slot" contenteditable="true" spellcheck="false" data-ph="Add name"></span></td><td class="who"><span class="slot" contenteditable="true" spellcheck="false" data-ph="Add name"></span></td></tr>
+    <tr><td class="n">IFMA World Workplace<div style="font-size:10.5px;color:#93A2AB;font-weight:500;line-height:1.2">Anaheim, CA</div></td><td>Nov 18–20</td><td class="tv">Nov 17 → 20</td><td class="seat">2–4</td><td class="who"><span class="slot" contenteditable="true" spellcheck="false" data-ph="Add name"></span></td><td class="who"><span class="slot" contenteditable="true" spellcheck="false" data-ph="Add name"></span></td><td class="who"><span class="slot" contenteditable="true" spellcheck="false" data-ph="Add name"></span></td></tr>
+    <tr><td class="n">PM Expo / Buildings Show<div style="font-size:10.5px;color:#93A2AB;font-weight:500;line-height:1.2">Toronto, ON</div></td><td>Dec 2–4</td><td class="tv">Local · Dec 2 → 4</td><td class="seat">Rotate</td><td class="who"><span class="slot" contenteditable="true" spellcheck="false" data-ph="Add name"></span></td><td class="who"><span class="slot" contenteditable="true" spellcheck="false" data-ph="Add name"></span></td><td class="who"><span class="slot" contenteditable="true" spellcheck="false" data-ph="Add name"></span></td></tr>
+    <tr><td class="n">ASHE PDC Summit<div style="font-size:10.5px;color:#93A2AB;font-weight:500;line-height:1.2">New Orleans, LA</div></td><td>Feb 28–Mar 3</td><td class="tv">Feb 27 → Mar 3</td><td class="seat">2</td><td class="who"><span class="slot" contenteditable="true" spellcheck="false" data-ph="Add name"></span></td><td class="who"><span class="slot" contenteditable="true" spellcheck="false" data-ph="Add name"></span></td><td class="who"><span class="slot" contenteditable="true" spellcheck="false" data-ph="Add name"></span></td></tr>
+    <tr><td class="n">RFMA 2027<div style="font-size:10.5px;color:#93A2AB;font-weight:500;line-height:1.2">TBD</div></td><td>March TBD</td><td class="tv">TBD</td><td class="seat">3</td><td class="who"><span class="slot" contenteditable="true" spellcheck="false" data-ph="Add name"></span></td><td class="who"><span class="slot" contenteditable="true" spellcheck="false" data-ph="Add name"></span></td><td class="who"><span class="slot" contenteditable="true" spellcheck="false" data-ph="Add name"></span></td></tr>
+    <tr><td class="n">NYC Restaurant Show<div style="font-size:10.5px;color:#93A2AB;font-weight:500;line-height:1.2">New York, NY</div></td><td>March TBC</td><td class="tv">Local · TBC</td><td class="seat">NY team</td><td class="who"><span class="slot" contenteditable="true" spellcheck="false" data-ph="Add name"></span></td><td class="who"><span class="slot" contenteditable="true" spellcheck="false" data-ph="Add name"></span></td><td class="who"><span class="slot" contenteditable="true" spellcheck="false" data-ph="Add name"></span></td></tr>
+    <tr><td class="n">NFMT East<div style="font-size:10.5px;color:#93A2AB;font-weight:500;line-height:1.2">Baltimore, MD</div></td><td>Mar 31–Apr 2</td><td class="tv">Mar 30 → Apr 2</td><td class="seat">2–3</td><td class="who"><span class="slot" contenteditable="true" spellcheck="false" data-ph="Add name"></span></td><td class="who"><span class="slot" contenteditable="true" spellcheck="false" data-ph="Add name"></span></td><td class="who"><span class="slot" contenteditable="true" spellcheck="false" data-ph="Add name"></span></td></tr>
+    <tr><td class="n">AKFCF 2027<div style="font-size:10.5px;color:#93A2AB;font-weight:500;line-height:1.2">TBC</div></td><td>Spring TBC</td><td class="tv">TBC</td><td class="seat">2</td><td class="who"><span class="slot" contenteditable="true" spellcheck="false" data-ph="Add name"></span></td><td class="who"><span class="slot" contenteditable="true" spellcheck="false" data-ph="Add name"></span></td><td class="who"><span class="slot" contenteditable="true" spellcheck="false" data-ph="Add name"></span></td></tr>
+    <tr><td class="n">CREATE 2027<div style="font-size:10.5px;color:#93A2AB;font-weight:500;line-height:1.2">TBC</div></td><td>~July 2027</td><td class="tv">FY28 · TBC</td><td class="seat">2</td><td class="who"><span class="slot" contenteditable="true" spellcheck="false" data-ph="Add name"></span></td><td class="who"><span class="slot" contenteditable="true" spellcheck="false" data-ph="Add name"></span></td><td class="who"><span class="slot" contenteditable="true" spellcheck="false" data-ph="Add name"></span></td></tr>
+    
+  </table>
+  <div class="trkey"><span><b>Sales</b> owns the meeting slate</span><span><b>Marketing</b> owns booth, dinner, and follow-up</span><span><b>Additional support</b>: ops, CS, exec, or partner team</span></div>
+</section>
+
 <!-- 19 · NEXT STEPS -->
 <section class="slide">
   <div class="kicker">This Week</div>
@@ -661,7 +702,7 @@
   }
   window.addEventListener('resize',fit);
   document.addEventListener('keydown',e=>{
-    if(e.target.tagName==='INPUT')return;
+    if(e.target.tagName==='INPUT'||e.target.isContentEditable)return;
     if(e.key==='ArrowRight'||e.key==='ArrowDown'||e.key===' ')go(cur+1);
     if(e.key==='ArrowLeft'||e.key==='ArrowUp')go(cur-1);
   });
@@ -683,6 +724,8 @@
   }
   frame.querySelectorAll('tr.brow input').forEach(cb=>cb.addEventListener('change',calc));
   calc();
+
+  frame.querySelectorAll('.slot').forEach(el=>el.addEventListener('input',()=>el.classList.toggle('filled',el.textContent.trim().length>0)));
 
   fit();
   go((parseInt(location.hash.slice(1))||1)-1);
